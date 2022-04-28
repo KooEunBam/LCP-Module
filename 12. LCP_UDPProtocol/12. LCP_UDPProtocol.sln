@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "12. LCP_UDPProtocol", "12. LCP_UDPProtocol\12. LCP_UDPProtocol.csproj", "{09FF4758-8E0A-468A-89E7-B1ABC4C6F97B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{09FF4758-8E0A-468A-89E7-B1ABC4C6F97B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09FF4758-8E0A-468A-89E7-B1ABC4C6F97B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09FF4758-8E0A-468A-89E7-B1ABC4C6F97B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09FF4758-8E0A-468A-89E7-B1ABC4C6F97B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {494DF72C-C595-449F-A168-708C8E8598F6}
+	EndGlobalSection
+EndGlobal
