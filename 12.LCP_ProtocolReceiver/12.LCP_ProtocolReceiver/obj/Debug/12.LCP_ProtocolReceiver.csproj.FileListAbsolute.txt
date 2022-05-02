@@ -1,0 +1,8 @@
+C:\Users\SAN\source\repos\12.LCP_ProtocolReceiver\12.LCP_ProtocolReceiver\obj\Debug\12.LCP_ProtocolReceiver.csproj.AssemblyReference.cache
+C:\Users\SAN\source\repos\12.LCP_ProtocolReceiver\12.LCP_ProtocolReceiver\obj\Debug\12.LCP_ProtocolReceiver.csproj.SuggestedBindingRedirects.cache
+C:\Users\SAN\source\repos\12.LCP_ProtocolReceiver\12.LCP_ProtocolReceiver\obj\Debug\12.LCP_ProtocolReceiver.csproj.CoreCompileInputs.cache
+C:\Users\SAN\source\repos\12.LCP_ProtocolReceiver\12.LCP_ProtocolReceiver\bin\Debug\12.LCP_ProtocolReceiver.exe.config
+C:\Users\SAN\source\repos\12.LCP_ProtocolReceiver\12.LCP_ProtocolReceiver\bin\Debug\12.LCP_ProtocolReceiver.exe
+C:\Users\SAN\source\repos\12.LCP_ProtocolReceiver\12.LCP_ProtocolReceiver\bin\Debug\12.LCP_ProtocolReceiver.pdb
+C:\Users\SAN\source\repos\12.LCP_ProtocolReceiver\12.LCP_ProtocolReceiver\obj\Debug\12.LCP_ProtocolReceiver.exe
+C:\Users\SAN\source\repos\12.LCP_ProtocolReceiver\12.LCP_ProtocolReceiver\obj\Debug\12.LCP_ProtocolReceiver.pdb
