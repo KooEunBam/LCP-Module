@@ -8,8 +8,8 @@ namespace _12.LCP_UDPProtocol.Common
 {
     public class NewData
     {
-        private int seq;
-        private byte[] data;
+        public int seq;
+        public byte[] data;
 
         public NewData()
         {
