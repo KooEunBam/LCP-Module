@@ -1,8 +1,0 @@
-C:\Users\SAN\source\repos\LCP\LCP\LCP_Client\LCP_Client\bin\Debug\LCP_Client.exe.config
-C:\Users\SAN\source\repos\LCP\LCP\LCP_Client\LCP_Client\bin\Debug\LCP_Client.exe
-C:\Users\SAN\source\repos\LCP\LCP\LCP_Client\LCP_Client\bin\Debug\LCP_Client.pdb
-C:\Users\SAN\source\repos\LCP\LCP\LCP_Client\LCP_Client\obj\Debug\LCP_Client.csproj.AssemblyReference.cache
-C:\Users\SAN\source\repos\LCP\LCP\LCP_Client\LCP_Client\obj\Debug\LCP_Client.csproj.SuggestedBindingRedirects.cache
-C:\Users\SAN\source\repos\LCP\LCP\LCP_Client\LCP_Client\obj\Debug\LCP_Client.csproj.CoreCompileInputs.cache
-C:\Users\SAN\source\repos\LCP\LCP\LCP_Client\LCP_Client\obj\Debug\LCP_Client.exe
-C:\Users\SAN\source\repos\LCP\LCP\LCP_Client\LCP_Client\obj\Debug\LCP_Client.pdb
