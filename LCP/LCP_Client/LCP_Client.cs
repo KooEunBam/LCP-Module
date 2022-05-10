@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LCP_Client.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -6,7 +7,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace LCP_Client
 {
@@ -27,8 +27,16 @@ namespace LCP_Client
 
         private static void printSimulator(int num, string ip, int port)
         {
-            int seq = 0; // sequence
-            const int thread_sleep = 100;
+            int seq = 1; // sequence
+            const int thread_sleep = 100; // Thread.Sleep
+
+            byte[] data = new byte[64]; // 64byte data 
+            byte[] dataseq = new byte[4]; // sequence to byte
+            byte[] datagram = new byte[68]; // seq + data => 68 byte (총 데이타 전달량)
+            List<byte> list = new List<byte>(); // list <= data + dataseq <= datagram (두 배열을 합하기 위해 list활용)
+
+
+            Random random = new Random();
 
             IPEndPoint ep = new IPEndPoint(IPAddress.Parse(ip), port); // 서버의 주소 지정
             Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp); // udp 소켓 client 선언
@@ -36,37 +44,35 @@ namespace LCP_Client
 
             if (num > 0)
             {
-                for (; seq < num; seq++)
+                for (; seq <= num; seq++)
                 {
-                    //try
-                    //{
-                    //    byte[] packetData = Encoding.UTF8.GetBytes(seq + "번째 "); // 문자열을 바이트배열로 변환
-                    //    client.SendTo(packetData, ep);
-                    //}
-                    //catch (SocketException e)
-                    //{
-                    //    if (e.ErrorCode == 10035)
-                    //    {
-                    //        // WSAWORLDBLOCK: 리소스가 일시적으로 사용이 불가능하다 .
-                    //    }
-                    //    else
-                    //    {
-                    //        Console.WriteLine("{0} : {1}", e.ErrorCode, e.Message);
-                    //        client.Close();
-                    //        Environment.Exit(-1);
-                    //    }
-                    byte[] packetData = Encoding.UTF8.GetBytes(seq + "번째 "); // 문자열을 바이트배열로 변환
-                    client.SendTo(packetData, ep);
+                    random.NextBytes(data); // data에 랜덤바이트 부여
+
+                    dataseq = BitConverter.GetBytes(seq); // dataseq에 seq를 바이트로 변화한 
+                    list.AddRange(dataseq); // list에 dateseq, data모두 넣고
+                    list.AddRange(data);
+                    datagram = list.ToArray(); // datagram에 두 배열 저장
+
+                    client.SendTo(datagram, ep); // datagram 전송
+                    //Zip.Compress(Encoding.Default.GetString(datagram))
                     Thread.Sleep(thread_sleep);
                 }
             }
-            else if (num == 0)
+            else
             {
                 while (true)
                 {
-                    byte[] packetData = Encoding.UTF8.GetBytes(seq + "번째 "); // 문자열을 바이트배열로 변환
-                    client.SendTo(packetData, ep);
+                    random.NextBytes(data);
+
+                    dataseq = BitConverter.GetBytes(seq);
+                    list.AddRange(dataseq);
+                    list.AddRange(data);
+                    datagram = list.ToArray();
+
+                    client.SendTo(datagram, ep);
+                    //Zip.Compress(Encoding.Default.GetString(datagram))
                     seq++;
+
                     Thread.Sleep(thread_sleep);
                 }
             }

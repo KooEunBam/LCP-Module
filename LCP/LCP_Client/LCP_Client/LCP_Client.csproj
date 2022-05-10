@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6039AB9F-7DCD-4512-973B-455285F25E67}</ProjectGuid>
+    <ProjectGuid>{C21227F2-10D4-4EAB-9349-8BEAB3C55B05}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>LCP_Client</RootNamespace>
     <AssemblyName>LCP_Client</AssemblyName>
@@ -43,8 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Program.cs">
+      <Link>Program.cs</Link>
+    </Compile>
     <Compile Include="Common\Zip.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -51,6 +51,5 @@ namespace LCP_Client.Common
                 return buffer;
             }
         }
-
     }
 }
