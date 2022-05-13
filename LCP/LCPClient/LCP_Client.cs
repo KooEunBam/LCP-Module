@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace LCPClient
 {
-    internal class Program
+    internal class LCP_Client
     {
         static void Main(string[] args)
         {
@@ -115,5 +115,6 @@ namespace LCPClient
                 }
             }
         }
+
     }
 }
