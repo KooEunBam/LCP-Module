@@ -14,15 +14,14 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace LCPServer
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for LCP_Server.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class LCP_Server : Window
     {
         private readonly AutoResetEvent autoresetevent;
         private readonly AutoResetEvent autoresetevent2;
@@ -37,7 +36,7 @@ namespace LCPServer
         private Thread th1;
         private Thread th2;
 
-        public MainWindow()
+        public LCP_Server()
         {
             this.autoresetevent = new AutoResetEvent(false);
             this.autoresetevent2 = new AutoResetEvent(false);
