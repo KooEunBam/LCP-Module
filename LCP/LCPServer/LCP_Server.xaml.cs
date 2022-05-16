@@ -31,6 +31,7 @@ namespace LCPServer
 
         private const int thread_sleep = 1;
 
+        private int overflow_changed;
         private IPAddress ipAddress; // IP주소
         private IPEndPoint endpoint; // Port번호
         private Thread th1;
@@ -44,6 +45,7 @@ namespace LCPServer
             this.queue = new Queue<NewData>();
             this.lockobject = new object();
 
+            this.overflow_changed = 0;
             this.th1 = new Thread(new ThreadStart(Receive_Thread));
             this.th2 = new Thread(new ThreadStart(FileSave_Thread));
 
@@ -70,6 +72,7 @@ namespace LCPServer
             });
 
             socket.Bind(endpoint);
+            //socket.Blocking = false;
             // endpoint로 들어오는 connection들은 모두 바인딩함 / bind any incoming connection to that socket   
 
             IPEndPoint sender = new IPEndPoint(IPAddress.Any, Dispatcher.Invoke(() => Convert.ToInt32(Port_TextBox.Text)));
@@ -89,16 +92,22 @@ namespace LCPServer
                 {
                     queue.Enqueue(newdata);
                 }
-                seq++; // seq값 증가
-                       // Thread sleep을 하면 UDP 손실이 일어날 수 있음
-                Thread.Sleep(thread_sleep);
+                       
+                if (newdata.seq != 2147483647) // int.MaxValue = 2147483647
+                {
+                    seq++; // seq값 증가
+                }
+                else
+                {
+                    seq = 0;
+                }
+                Thread.Sleep(thread_sleep); // Thread sleep을 하면 UDP 손실이 일어날 수 있음
             }
         }
 
         private void FileSave_Thread()
         {
             int packet_lost = 0;
-            int overflow_changed = 0;
 
             List<byte> sequence_list = new List<byte>(); // sequence_list 생성
             List<int> packet_lost_check = new List<int>();
@@ -129,19 +138,24 @@ namespace LCPServer
                     {
                         sequence_list.Add(newdata.data[i]); // list에 sequence (4byte)부터 넣어서 0번째 인덱스 부터 3번째 인덱스까지 추가함
                     }
+                    if(BitConverter.ToInt32(sequence_list.ToArray(), 0) == 2147483647)
+                    {
+                        overflow_changed++;
+                    }
                     Dispatcher.Invoke(() => Result_TextBox.Text = Result_TextBox.Text +
                         "Data_seq : " + BitConverter.ToInt32(sequence_list.ToArray(), 0).ToString());
                     packet_lost_check.Add(BitConverter.ToInt32(sequence_list.ToArray(), 0)); // packet lost check 리스트에 data_seq값 추가
                     sequence_list.Clear();
 
-                    for (int i = 4; i < 8; i++) // 4 - 8번째는 overflow가 되면 증가할 정수형 숫자
-                    {
-                        sequence_list.Add(newdata.data[i]);
-                    }
-                    Dispatcher.Invoke(() => Result_TextBox.Text = Result_TextBox.Text +
-                        " Data_Overflow : " + BitConverter.ToInt32(sequence_list.ToArray(), 0).ToString());
 
-                    if (packet_lost_check.Last() - packet_lost_check[packet_lost_check.Count - 2] == 1) ; // 리스트의 마지막 요소와 그 전 요소의 차이가 1이면 packet lost 없음
+                    Dispatcher.Invoke(() => Result_TextBox.Text = Result_TextBox.Text +
+                        " Data_Overflow : " + overflow_changed);
+
+                    if (packet_lost_check[packet_lost_check.Count - 1] - packet_lost_check[packet_lost_check.Count - 2] == 1) ; // 리스트의 마지막 요소와 그 전 요소의 차이가 1이면 packet lost 없음
+                    else if (packet_lost_check[packet_lost_check.Count - 1] - packet_lost_check[packet_lost_check.Count - 2] == 0)
+                    {
+                        packet_lost += 1; // 만약 같을 경우 +1 -> 에러 수정 필요함
+                    }
                     else
                     {
                         packet_lost += packet_lost_check.Last() - packet_lost_check[packet_lost_check.Count - 2] - 1; // 2이상 차이날 경우 packet lost 발생
@@ -157,9 +171,11 @@ namespace LCPServer
                     //decompress_data = Zip.Decompress(Convert.ToBase64String(sequence_list.ToArray())); // Decompress 
                     //sequence_list.Clear(); // list clear
                 }
+
                 // DeCompress -> .zip save
                 //Zip.Decompress(Encoding.Default.GetString(newdata.data));
 
+                
                 Thread.Sleep(thread_sleep);
             }
         }
