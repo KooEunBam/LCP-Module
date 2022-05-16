@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LCPServer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="500" Closed="MainWindow_Closed">
+        Title="LCP_Server" Height="450" Width="500" Closed="MainWindow_Closed">
     <Grid Margin="10,10,10,10">
         <Button Name="StartButton" Margin="20" Content="Start" 
                 HorizontalAlignment="Right" VerticalAlignment="Bottom"   Click="StartButton_Click" Height="30" Width="100"/>

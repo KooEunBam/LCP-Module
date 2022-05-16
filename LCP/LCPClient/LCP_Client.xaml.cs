@@ -24,24 +24,19 @@ namespace LCPClient
     /// </summary>
     public partial class LCP_Client : Window
     {
-        private readonly AutoResetEvent autoResetEvent;
-        
         private readonly Random random;
-        
-
-
 
         public LCP_Client()
         {
             this.random = new Random();
+
             InitializeComponent();
         }
 
-        private void Data_Sender(int num, int cycle, string ip, int port)
+        private async void Data_Sender(int num, int cycle, string ip, int port)
         {
             int data_sequence = 1; // data sequence
             int data_sequence_overflow = 0; // data sequence to check overflow
-            int ten_sec_timer = 10000; // timer for 10sec
 
             byte[] data = new byte[64]; // 64byte data 
             byte[] byte_data_seq = new byte[4]; // int sequence to byte
@@ -67,36 +62,29 @@ namespace LCPClient
                     datagram_list.Clear(); // list 초기화
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
-
-                    if(ten_sec_timer > 0)
+                    
+                    if (data_sequence != 2147483647)
                     {
-                        ten_sec_timer -= cycle;
                         data_sequence++;
                     }
                     else
                     {
-                        if (data_sequence != 2147483647)
-                        {
-                            data_sequence++;
-                        }
-                        else
-                        {
-                            data_sequence = 0;
-                            data_sequence_overflow++;
-                        }
-
-                        if (data_sequence_overflow > 0)
-                        {
-                            transaction_queue_textbox.Text = $"{cycle * data_sequence}초 경과, " +
-                                $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
-                        }
-                        else
-                        {
-                            transaction_queue_textbox.Text = $"{cycle * data_sequence}초 경과, " +
-                                $"데이타 보낸 수 : {data_sequence}";
-                        }
+                        data_sequence = 0;
+                        data_sequence_overflow++;
                     }
-                    Thread.Sleep(cycle);
+
+                    if (data_sequence_overflow > 0)
+                    {
+                        transaction_queue_textbox.Text = $"{cycle * data_sequence / 1000}초 경과, " +
+                            $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
+                    }
+                    else
+                    {
+                        transaction_queue_textbox.Text = $"{cycle * data_sequence / 1000}초 경과, " +
+                            $"데이타 보낸 수 : {data_sequence}";
+                    }
+                    
+                    await Task.Delay(cycle);
                 }
             }
             else if (num == 0)
@@ -115,35 +103,27 @@ namespace LCPClient
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (ten_sec_timer > 0)
+                    if (data_sequence != 2147483647)
                     {
-                        ten_sec_timer -= cycle;
                         data_sequence++;
                     }
                     else
                     {
-                        if (data_sequence != 2147483647)
-                        {
-                            data_sequence++;
-                        }
-                        else
-                        {
-                            data_sequence = 0;
-                            data_sequence_overflow++;
-                        }
-
-                        if (data_sequence_overflow > 0)
-                        {
-                            transaction_queue_textbox.Text = $"{cycle * data_sequence}초 경과, " +
-                                $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
-                        }
-                        else
-                        {
-                            transaction_queue_textbox.Text = $"{cycle * data_sequence}초 경과, " +
-                                $"데이타 보낸 수 : {data_sequence}";
-                        }
+                        data_sequence = 0;
+                        data_sequence_overflow++;
                     }
-                    Thread.Sleep(cycle);
+
+                    if (data_sequence_overflow > 0)
+                    {
+                        transaction_queue_textbox.Text = $"{cycle * data_sequence / 1000}초 경과, " +
+                            $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
+                    }
+                    else
+                    {
+                        transaction_queue_textbox.Text = $"{cycle * data_sequence / 1000}초 경과, " +
+                            $"데이타 보낸 수 : {data_sequence}";
+                    }
+                    await Task.Delay(cycle);
                 }
             }
         }
@@ -181,5 +161,4 @@ namespace LCPClient
             Environment.Exit(0); // 어플리케이션의 모든 쓰레드를 멈추어 종료시킴
         }
     }
-
 }
