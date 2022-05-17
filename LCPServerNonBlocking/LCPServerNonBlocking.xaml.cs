@@ -87,12 +87,33 @@ namespace LCPServerNonBlocking
 
             while (true)
             {
+                if(Dispatcher.Invoke(() => (string)(StartButton.Content) == "Start"))
+                {
+                    socket.Close();
+                    autoresetevent.WaitOne();
+
+                    //if(Dispatcher.Invoke(() => (string)(StartButton.Content) == "Stop"))
+                    //{
+                    //    Socket re_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                    //    Dispatcher.Invoke(() =>
+                    //    {
+                    //        IPAddress re_ipaddress = IPAddress.Parse(ipTextBox.Text);
+                    //        IPEndPoint re_endpoint = new IPEndPoint(re_ipaddress, Convert.ToInt32(portTextBox.Text));
+                    //        endpoint = re_endpoint;
+                    //    });
+                    //    re_socket.Bind(endpoint);
+                    //    re_socket.Blocking = false;
+                    //    IPEndPoint re_sender = new IPEndPoint(IPAddress.Any, Dispatcher.Invoke(() => Convert.ToInt32(portTextBox.Text)));
+                    //    EndPoint re_tmpRemote = (EndPoint)re_sender;
+                    //}
+                }
                 try
                 {
                     recv = socket.ReceiveFrom(data, ref tmpRemote);
                 }
                 catch (SocketException e)
                 {
+                    Thread.Sleep(threadSleep);
                     continue; // Nonblocking 모드에서 읽을 데이터가 없으면 SocketException 리턴함
                 }
 
@@ -103,7 +124,7 @@ namespace LCPServerNonBlocking
                     queue.Enqueue(newdata);
                 }
 
-                if (newdata.seq != 2147483647) // int.MaxValue = 2147483647
+                if (newdata.seq != int.MaxValue) // int.MaxValue = 2147483647
                 {
                     seq++; // seq값 증가
                 }
@@ -112,16 +133,17 @@ namespace LCPServerNonBlocking
                     seq = 0;
                     seqOverflowChanged++;
                 }
+                Thread.Sleep(threadSleep);
             }
         }
 
         private void FileSaveThread()
         {
             int packet_lost = 0;
+            int oldValue = 0;
+            int currentValue = 0;
 
             List<byte> sequenceList = new List<byte>(); // sequenceList 생성
-            List<int> packetLostCheck = new List<int>();
-            packetLostCheck.Add(0); // 초기에 비교할 숫자 추가
 
             while (true)
             {
@@ -148,31 +170,36 @@ namespace LCPServerNonBlocking
                     {
                         sequenceList.Add(newdata.data[i]); // list에 sequence (4byte)부터 넣어서 0번째 인덱스 부터 3번째 인덱스까지 추가함
                     }
-                    if (BitConverter.ToInt32(sequenceList.ToArray(), 0) == 2147483647)
+                    if (BitConverter.ToInt32(sequenceList.ToArray(), 0) == int.MaxValue)
                     {
                         dataOverflowChanged++;
                     }
+                    oldValue = currentValue;
+                    currentValue = BitConverter.ToInt32(sequenceList.ToArray(), 0);
 
-                    packetLostCheck.Add(BitConverter.ToInt32(sequenceList.ToArray(), 0)); // packet lost check 리스트에 data_seq값 추가
-                    if (packetLostCheck[packetLostCheck.Count - 1] - packetLostCheck[packetLostCheck.Count - 2] == 1) ; // 리스트의 마지막 요소와 그 전 요소의 차이가 1이면 packet lost 없음
-                    else if (packetLostCheck[packetLostCheck.Count - 1] - packetLostCheck[packetLostCheck.Count - 2] == 0)
+                    if(currentValue - oldValue != 1)
                     {
-                        packet_lost += 1; // 만약 같을 경우 +1 -> 에러 수정 필요함
+                        if(currentValue - oldValue < 0)
+                        {
+                            packet_lost += int.MaxValue - oldValue + currentValue;
+                        }
+                        else
+                        {
+                            if(currentValue > 0)
+                                packet_lost += (currentValue - oldValue - 1);
+                        }
                     }
-                    else
+
+                    if (currentValue % 100 == 0)
                     {
-                        packet_lost += packetLostCheck.Last() - packetLostCheck[packetLostCheck.Count - 2] - 1; // 2이상 차이날 경우 packet lost 발생
-                    }
-                    if (BitConverter.ToInt32(sequenceList.ToArray(), 0) % 100 == 0)
-                    {
-                        Dispatcher.Invoke(() => resultTextBox.Text = resultTextBox.Text +
-                            "Queue_seq : " + newdata.seq + " overflow : " + seqOverflowChanged + "\n");
-                        Dispatcher.Invoke(() => resultTextBox.Text = resultTextBox.Text +
-                            "Data_seq : " + BitConverter.ToInt32(sequenceList.ToArray(), 0).ToString());
-                        Dispatcher.Invoke(() => resultTextBox.Text = resultTextBox.Text +
+                        Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
+                            "Queue_seq : " + newdata.seq + " Queue_overflow : " + seqOverflowChanged + "\n");
+                        Dispatcher.Invoke(() => dataResultTextBox.Text = dataResultTextBox.Text +
+                            "Data_seq : " + currentValue.ToString());
+                        Dispatcher.Invoke(() => dataResultTextBox.Text = dataResultTextBox.Text +
                             " Data_Overflow : " + dataOverflowChanged);
-                        Dispatcher.Invoke(() => resultTextBox.Text = resultTextBox.Text +
-                            " Packet_Lost : " + packet_lost + "\n");
+                        Dispatcher.Invoke(() => dataResultTextBox.Text = dataResultTextBox.Text +
+                            "\nPacket_Lost : " + packet_lost + "\n");
                     }
                     sequenceList.Clear();
 
@@ -188,7 +215,7 @@ namespace LCPServerNonBlocking
                 //Zip.Decompress(Encoding.Default.GetString(newdata.data));
 
 
-                //Thread.Sleep(threadSleep);
+                Thread.Sleep(threadSleep);
             }
         }
 
@@ -210,15 +237,20 @@ namespace LCPServerNonBlocking
             }
         }
 
+        private void QueueResultTextBoxTextChanged(object sender, TextChangedEventArgs e)
+        {
+            queueResultTextBox.ScrollToEnd();
+        }
+
+        private void DataResultTextBoxTextChanged(object sender, TextChangedEventArgs e)
+        {
+            dataResultTextBox.ScrollToEnd();
+        }
+
         private void MainWindowClosed(object sender, EventArgs e)
         {
             Application.Current.Shutdown(); // 어플리케이션을 종료
             Environment.Exit(0); // 어플리케이션의 모든 쓰레드를 멈추어 종료시킴
-        }
-
-        private void ResultTextBoxTextChanged(object sender, TextChangedEventArgs e)
-        {
-            resultTextBox.ScrollToEnd();
         }
     }
 }

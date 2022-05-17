@@ -78,12 +78,13 @@ namespace LCPClientNonBlocking
 
                             if (dataSequenceOverflow > 0)
                             {
-                                transactionQueueTextBox.Text =
-                                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
+                                transactionQueueTextBox.Text = transactionQueueTextBox.Text +
+                                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow} \n";
                             }
                             else
                             {
-                                transactionQueueTextBox.Text = $"데이타 보낸 수 : {dataSequence}";
+                                transactionQueueTextBox.Text = transactionQueueTextBox.Text +
+                                    $"데이타 보낸 수 : {dataSequence} \n";
                             }
                         }
                         dataSequence++;
@@ -96,8 +97,8 @@ namespace LCPClientNonBlocking
                     count++;
                     await Task.Delay(cycle);
                 }
-                transactionQueueTextBox.Text =
-                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
+                transactionQueueTextBox.Text = transactionQueueTextBox.Text +
+                    $"\n데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
             }
             else if (num == 0)
             {
@@ -128,12 +129,13 @@ namespace LCPClientNonBlocking
 
                             if (dataSequenceOverflow > 0)
                             {
-                                transactionQueueTextBox.Text =
-                                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
+                                transactionQueueTextBox.Text = transactionQueueTextBox.Text +
+                                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}\n";
                             }
                             else
                             {
-                                transactionQueueTextBox.Text = $"데이타 보낸 수 : {dataSequence}";
+                                transactionQueueTextBox.Text = transactionQueueTextBox.Text +
+                                    $"데이타 보낸 수 : {dataSequence}\n";
                             }
                         }
                         dataSequence++;
@@ -146,8 +148,8 @@ namespace LCPClientNonBlocking
                     count++;
                     await Task.Delay(cycle);
                 }
-                transactionQueueTextBox.Text =
-                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
+                transactionQueueTextBox.Text = transactionQueueTextBox.Text +
+                    $"\n데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
             }
         }
 

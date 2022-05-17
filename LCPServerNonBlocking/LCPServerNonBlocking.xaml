@@ -22,7 +22,9 @@
                 <TextBox Name="portTextBox" Height="30" Width="160"/>
             </StackPanel>
         </StackPanel>
-        <TextBox Margin="10" Name="resultTextBox" HorizontalAlignment="Center" VerticalAlignment="Top"
-                Height="250" Width="420" TextChanged="ResultTextBoxTextChanged" />
+        <TextBox Margin="10" Name="queueResultTextBox" HorizontalAlignment="Right" VerticalAlignment="Top"
+                Height="250" Width="210" TextChanged="QueueResultTextBoxTextChanged" />
+        <TextBox Margin="10" Name="dataResultTextBox" HorizontalAlignment="Left" VerticalAlignment="Top"
+                Height="250" Width="210" TextChanged="DataResultTextBoxTextChanged" />
     </Grid>
 </Window>
