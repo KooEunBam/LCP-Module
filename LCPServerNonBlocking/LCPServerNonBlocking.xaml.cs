@@ -21,7 +21,7 @@ namespace LCPServerNonBlocking
     /// <summary>
     /// Interaction logic for LCPServerNonBlocking.xaml
     /// </summary>
-    public partial class LCPServerNB : Window
+    public partial class LCPServerNonBlock : Window
     {
 
         private readonly AutoResetEvent autoresetevent;
@@ -39,7 +39,7 @@ namespace LCPServerNonBlocking
         private Thread th1;
         private Thread th2;
 
-        public LCPServerNB()
+        public LCPServerNonBlock()
         {
             this.autoresetevent = new AutoResetEvent(false);
             this.autoresetevent2 = new AutoResetEvent(false);

@@ -33,7 +33,7 @@ namespace LCPClientBlocking
 
         private async void Data_Sender(int num, int cycle, string ip, int port)
         {
-            int data_sequence = 1; // data sequence
+            int data_sequence = 0; // data sequence
             //int data_sequence = 2147483640; // data sequence overflow test
             int data_sequence_overflow = 0; // data sequence to check overflow
             int count = 1; // count for data
@@ -47,6 +47,8 @@ namespace LCPClientBlocking
 
             IPEndPoint ep = new IPEndPoint(IPAddress.Parse(ip), port); // 서버의 주소 지정
             Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp); // udp 소켓 client 선언
+
+            
 
             if (num > 0) // 전송 횟수가 0보다 클 경우
             {
@@ -70,7 +72,7 @@ namespace LCPClientBlocking
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (data_sequence != 2147483647) // overflow에 해당하지 않으면
+                    if (data_sequence != int.MaxValue) // overflow에 해당하지 않으면
                     {
                         if ((ten_sec_timer - (cycle * count)) < 0) // 약 10초 ( 10초 + cycle*count가 정확한 시간)
                         {
@@ -90,12 +92,14 @@ namespace LCPClientBlocking
                     }
                     else // overflow 발생시
                     {
-                        data_sequence = 1;
+                        data_sequence = 0;
                         data_sequence_overflow++;
                     }
                     count++;
                     await Task.Delay(cycle);
                 }
+                transaction_queue_textbox.Text =
+                    $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
             }
             else if (num == 0)
             {
@@ -118,7 +122,7 @@ namespace LCPClientBlocking
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (data_sequence != 2147483647)
+                    if (data_sequence != int.MaxValue)
                     {
                         if ((ten_sec_timer - (cycle * count)) < 0)
                         {
@@ -144,6 +148,8 @@ namespace LCPClientBlocking
                     count++;
                     await Task.Delay(cycle);
                 }
+                transaction_queue_textbox.Text =
+                    $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
             }
         }
 
@@ -178,7 +184,6 @@ namespace LCPClientBlocking
         //------------------------------------------------------------------------------------
         private void transaction_queue_textbox_TextChanged(object sender, TextChangedEventArgs e)
         {
-
             transaction_queue_textbox.ScrollToEnd();
         }
 

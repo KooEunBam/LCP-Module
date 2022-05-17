@@ -20,11 +20,11 @@ namespace LCPClientNonBlocking
     /// <summary>
     /// Interaction logic for LCPClientNonBlocking.xaml
     /// </summary>
-    public partial class LCPClientNB : Window
+    public partial class LCPClientNonBlock : Window
     {
         private readonly Random random;
 
-        public LCPClientNB()
+        public LCPClientNonBlock()
         {
             this.random = new Random();
 
@@ -33,7 +33,7 @@ namespace LCPClientNonBlocking
 
         private async void Data_Sender(int num, int cycle, string ip, int port)
         {
-            int data_sequence = 1; // data sequence
+            int data_sequence = 0; // data sequence
             //int data_sequence = 2147483640; // data sequence overflow test
             int data_sequence_overflow = 0; // data sequence to check overflow
             int count = 1; // count for data
@@ -55,11 +55,13 @@ namespace LCPClientNonBlocking
                     if ((string)start_button.Content == "Start")
                     {
                         break;
-                    }
-                    random.NextBytes(data);
-                    compressed_data = Zip.Compress(Encoding.Default.GetString(data));
+                    }// start 버튼의 content가 start인 경우 1. 처음시작, 2. Stop버튼 누른경우
+                     // 2번만 해당하며, while문을 탈출 하더라도 click시 함수 인자값을 다시 넣으므로 실행에 문제없음
 
-                    byte_data_seq = BitConverter.GetBytes(data_sequence);
+                    random.NextBytes(data); // data를 랜덤 바이트로 채움
+                    compressed_data = Zip.Compress(Encoding.Default.GetString(data)); // data를 압축
+
+                    byte_data_seq = BitConverter.GetBytes(data_sequence); // data_sequence를 byte로 변환
                     datagram_list.AddRange(byte_data_seq); // list에 data_seq, compress_data모두 넣고
                     datagram_list.AddRange(compressed_data);
 
@@ -68,9 +70,9 @@ namespace LCPClientNonBlocking
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (data_sequence != 2147483647)
+                    if (data_sequence != int.MaxValue) // overflow에 해당하지 않으면
                     {
-                        if ((ten_sec_timer - (cycle * count)) < 0)
+                        if ((ten_sec_timer - (cycle * count)) < 0) // 약 10초 ( 10초 + cycle*count가 정확한 시간)
                         {
                             count = 0;
 
@@ -86,14 +88,16 @@ namespace LCPClientNonBlocking
                         }
                         data_sequence++;
                     }
-                    else
+                    else // overflow 발생시
                     {
-                        data_sequence = 1;
+                        data_sequence = 0;
                         data_sequence_overflow++;
                     }
                     count++;
                     await Task.Delay(cycle);
                 }
+                transaction_queue_textbox.Text =
+                    $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
             }
             else if (num == 0)
             {
@@ -102,10 +106,11 @@ namespace LCPClientNonBlocking
                     if ((string)start_button.Content == "Start")
                     {
                         break;
-                    }
+                    }// start 버튼의 content가 start인 경우 1. 처음시작, 2. Stop버튼 누른경우
+                     // 2번만 해당하며, while문을 탈출 하더라도 click시 함수 인자값을 다시 넣으므로 실행에 문제없음
 
-                    random.NextBytes(data);
-                    compressed_data = Zip.Compress(Encoding.Default.GetString(data));
+                    random.NextBytes(data); // data 임의의 바이트로 채움
+                    compressed_data = Zip.Compress(Encoding.Default.GetString(data)); // data 압축
 
                     byte_data_seq = BitConverter.GetBytes(data_sequence);
                     datagram_list.AddRange(byte_data_seq); // list에 data_seq, compress_data모두 넣고
@@ -116,9 +121,9 @@ namespace LCPClientNonBlocking
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (data_sequence != 2147483647)
+                    if (data_sequence != int.MaxValue) // overflow에 해당하지 않으면
                     {
-                        if ((ten_sec_timer - (cycle * count)) < 0)
+                        if ((ten_sec_timer - (cycle * count)) < 0) // 약 10초 ( 10초 + cycle*count가 정확한 시간)
                         {
                             count = 0;
 
@@ -134,16 +139,19 @@ namespace LCPClientNonBlocking
                         }
                         data_sequence++;
                     }
-                    else
+                    else // overflow 발생시
                     {
-                        data_sequence = 1;
+                        data_sequence = 0;
                         data_sequence_overflow++;
                     }
                     count++;
                     await Task.Delay(cycle);
                 }
+                transaction_queue_textbox.Text =
+                    $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
             }
         }
+
         private void start_button_click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(ip_textbox.Text) || string.IsNullOrEmpty(port_textbox.Text)
@@ -176,6 +184,5 @@ namespace LCPClientNonBlocking
             Application.Current.Shutdown(); // 어플리케이션을 종료
             Environment.Exit(0); // 어플리케이션의 모든 쓰레드를 멈추어 종료시킴
         }
-
     }
 }
