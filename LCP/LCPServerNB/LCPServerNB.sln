@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LCPClient (WPF)", "LCPClient (WPF).csproj", "{E1EFC21E-73B8-4372-8E30-C5E8345F6EA1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LCPServerNB", "LCPServerNB\LCPServerNB.csproj", "{0FD46F5D-D9C4-4A12-A8C1-728AEA21966C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E1EFC21E-73B8-4372-8E30-C5E8345F6EA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E1EFC21E-73B8-4372-8E30-C5E8345F6EA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E1EFC21E-73B8-4372-8E30-C5E8345F6EA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E1EFC21E-73B8-4372-8E30-C5E8345F6EA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FD46F5D-D9C4-4A12-A8C1-728AEA21966C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FD46F5D-D9C4-4A12-A8C1-728AEA21966C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FD46F5D-D9C4-4A12-A8C1-728AEA21966C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FD46F5D-D9C4-4A12-A8C1-728AEA21966C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {5F54C8DE-6645-49FF-857F-5849F08642CF}
+		SolutionGuid = {31702405-CDBE-4D47-B427-F7FFF27F3DF4}
 	EndGlobalSection
 EndGlobal

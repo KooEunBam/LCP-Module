@@ -1,0 +1,28 @@
+﻿<Window x:Class="LCPServerNB.LCP_Server_NB"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LCPServerNB"
+        mc:Ignorable="d"
+        Title="LCP_Server_NB" Height="450" Width="500" Closed="MainWindow_Closed">
+    <Grid Margin="10,10,10,10">
+        <Button Name="StartButton" Margin="20" Content="Start" 
+                HorizontalAlignment="Right" VerticalAlignment="Bottom"   Click="StartButton_Click" Height="30" Width="100"/>
+
+        <StackPanel Margin ="10" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+            <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                        Orientation="Horizontal">
+                <Label Name="IP_label" Content="IP" Height="30" Width="60"/>
+                <TextBox Name="IP_TextBox" Height="30" Width="160"/>
+            </StackPanel>
+            <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                        Orientation="Horizontal">
+                <Label Name="Port_label" Content="Port" Height="30" Width="60"/>
+                <TextBox Name="Port_TextBox" Height="30" Width="160"/>
+            </StackPanel>
+        </StackPanel>
+        <TextBox Margin="10" Name="Result_TextBox" HorizontalAlignment="Center" VerticalAlignment="Top"
+                Height="250" Width="420" TextChanged="Result_TextBox_TextChanged" />
+    </Grid>
+</Window>

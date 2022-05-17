@@ -1,4 +1,4 @@
-﻿using LCPServer.Common;
+﻿using LCPServerNB.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,14 +15,13 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using System.IO;
 
-namespace LCPServer
+namespace LCPServerNB
 {
     /// <summary>
-    /// Interaction logic for LCP_Server.xaml
+    /// Interaction logic for LCP_Server_NB.xaml
     /// </summary>
-    public partial class LCP_Server : Window
+    public partial class LCP_Server_NB : Window
     {
         private readonly AutoResetEvent autoresetevent;
         private readonly AutoResetEvent autoresetevent2;
@@ -30,17 +29,16 @@ namespace LCPServer
         private readonly Queue<NewData> queue;
         private readonly object lockobject;
 
-        private const int thread_sleep = 1;
+        private const int thread_sleep = 5;
 
         private int seq_overflow_changed;
         private int data_overflow_changed;
-
         private IPAddress ipAddress; // IP주소
         private IPEndPoint endpoint; // Port번호
         private Thread th1;
         private Thread th2;
 
-        public LCP_Server()
+        public LCP_Server_NB()
         {
             this.autoresetevent = new AutoResetEvent(false);
             this.autoresetevent2 = new AutoResetEvent(false);
@@ -58,7 +56,6 @@ namespace LCPServer
             th1.Start();
             th2.Start();
         }
-
 
         private void Receive_Thread()
         {
@@ -78,8 +75,8 @@ namespace LCPServer
 
             socket.Bind(endpoint);
             // endpoint로 들어오는 connection들은 모두 바인딩함 / bind any incoming connection to that socket
-            socket.Blocking = true;
-            // socket blocking 활성화
+            socket.Blocking = false;
+            // socket non-blocking 
 
             IPEndPoint sender = new IPEndPoint(IPAddress.Any, Dispatcher.Invoke(() => Convert.ToInt32(Port_TextBox.Text)));
             // sender을 통해 한 커넥션을 대기하고, wait for an incoming connection
@@ -90,13 +87,11 @@ namespace LCPServer
             {
                 try
                 {
-                    socket.ReceiveTimeout = 5000; // timeout 5초로 지정
                     recv = socket.ReceiveFrom(data, ref tmpRemote);
-                    // recv는 배열 길이, tmpRemote에 받은 값들을 data에 저장, it stores all the client into socket variable
                 }
-                catch (SocketException e) // 값이 없으면 예외 발생
+                catch (SocketException e)
                 {
-                    continue; 
+                    continue; // Nonblocking 모드에서 읽을 데이터가 없으면 SocketException 리턴함
                 }
 
                 NewData newdata = new NewData(seq, data);
@@ -105,7 +100,7 @@ namespace LCPServer
                 {
                     queue.Enqueue(newdata);
                 }
-                       
+
                 if (newdata.seq != 2147483647) // int.MaxValue = 2147483647
                 {
                     seq++; // seq값 증가
@@ -155,7 +150,7 @@ namespace LCPServer
                     {
                         data_overflow_changed++;
                     }
-                    
+
                     packet_lost_check.Add(BitConverter.ToInt32(sequence_list.ToArray(), 0)); // packet lost check 리스트에 data_seq값 추가
                     if (packet_lost_check[packet_lost_check.Count - 1] - packet_lost_check[packet_lost_check.Count - 2] == 1) ; // 리스트의 마지막 요소와 그 전 요소의 차이가 1이면 packet lost 없음
                     else if (packet_lost_check[packet_lost_check.Count - 1] - packet_lost_check[packet_lost_check.Count - 2] == 0)
@@ -166,7 +161,7 @@ namespace LCPServer
                     {
                         packet_lost += packet_lost_check.Last() - packet_lost_check[packet_lost_check.Count - 2] - 1; // 2이상 차이날 경우 packet lost 발생
                     }
-                    if(BitConverter.ToInt32(sequence_list.ToArray(), 0) % 100 == 0)
+                    if (BitConverter.ToInt32(sequence_list.ToArray(), 0) % 100 == 0)
                     {
                         Dispatcher.Invoke(() => Result_TextBox.Text = Result_TextBox.Text +
                             "Queue_seq : " + newdata.seq + " overflow : " + seq_overflow_changed + "\n");
@@ -223,5 +218,9 @@ namespace LCPServer
         {
             Result_TextBox.ScrollToEnd();
         }
+
+
     }
 }
+
+

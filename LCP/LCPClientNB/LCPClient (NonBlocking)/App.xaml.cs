@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace LCPClient__WPF_
+namespace LCPClient__NonBlocking_
 {
     /// <summary>
     /// Interaction logic for App.xaml

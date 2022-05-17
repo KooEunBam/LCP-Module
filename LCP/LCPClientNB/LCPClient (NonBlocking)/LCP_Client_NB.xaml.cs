@@ -1,11 +1,10 @@
-﻿using LCPClient__WPF_.Common;
+﻿using LCPClient__NonBlocking_.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,40 +13,31 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.IO;
 
-namespace LCPClient
+namespace LCPClient__NonBlocking_
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for LCP_Client_NB.xaml
     /// </summary>
-    public partial class LCP_Client : Window
+    public partial class LCP_Client_NB : Window
     {
-        private readonly AutoResetEvent autoResetEvent;
-
         private readonly Random random;
-
-
-
-        public LCP_Client()
+        public LCP_Client_NB()
         {
-            this.autoResetEvent = new AutoResetEvent(false);
-
             this.random = new Random();
 
             InitializeComponent();
-
-
-
-            Data_Sender(Convert.ToInt32(transaction_time_textbox.Text), Convert.ToInt32(transaction_period_textbox.Text),
-                ip_textbox.Text, Convert.ToInt32(port_textbox.Text));
         }
 
-        private void Data_Sender(int num, int cycle, string ip, int port)
+        private async void Data_Sender(int num, int cycle, string ip, int port)
         {
             int data_sequence = 1; // data sequence
+            //int data_sequence = 2147483640; // data sequence overflow test
             int data_sequence_overflow = 0; // data sequence to check overflow
+            int count = 1; // count for data
+            int ten_sec_timer = 10000; // ten sec to ms
 
             byte[] data = new byte[64]; // 64byte data 
             byte[] byte_data_seq = new byte[4]; // int sequence to byte
@@ -60,8 +50,12 @@ namespace LCPClient
 
             if (num > 0)
             {
-                while (data_sequence <= num)
+                while (count <= num)
                 {
+                    if ((string)start_button.Content == "Start")
+                    {
+                        break;
+                    }
                     random.NextBytes(data);
                     compressed_data = Zip.Compress(Encoding.Default.GetString(data));
 
@@ -76,6 +70,20 @@ namespace LCPClient
 
                     if (data_sequence != 2147483647)
                     {
+                        if ((ten_sec_timer - (cycle * count)) < 0)
+                        {
+                            count = 0;
+
+                            if (data_sequence_overflow > 0)
+                            {
+                                transaction_queue_textbox.Text =
+                                    $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
+                            }
+                            else
+                            {
+                                transaction_queue_textbox.Text = $"데이타 보낸 수 : {data_sequence}";
+                            }
+                        }
                         data_sequence++;
                     }
                     else
@@ -83,13 +91,19 @@ namespace LCPClient
                         data_sequence = 0;
                         data_sequence_overflow++;
                     }
-                    Thread.Sleep(cycle);
+                    count++;
+                    await Task.Delay(cycle);
                 }
             }
             else if (num == 0)
             {
                 while (true)
                 {
+                    if ((string)start_button.Content == "Start")
+                    {
+                        break;
+                    }
+
                     random.NextBytes(data);
                     compressed_data = Zip.Compress(Encoding.Default.GetString(data));
 
@@ -104,6 +118,20 @@ namespace LCPClient
 
                     if (data_sequence != 2147483647)
                     {
+                        if ((ten_sec_timer - (cycle * count)) < 0)
+                        {
+                            count = 0;
+
+                            if (data_sequence_overflow > 0)
+                            {
+                                transaction_queue_textbox.Text =
+                                    $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
+                            }
+                            else
+                            {
+                                transaction_queue_textbox.Text = $"데이타 보낸 수 : {data_sequence}";
+                            }
+                        }
                         data_sequence++;
                     }
                     else
@@ -111,16 +139,32 @@ namespace LCPClient
                         data_sequence = 0;
                         data_sequence_overflow++;
                     }
-                    Thread.Sleep(cycle);
+                    count++;
+                    await Task.Delay(cycle);
                 }
-            }
-            else
-            {
-                transaction_queue_textbox.Text = "잘못 입력했습니다.";
             }
         }
 
-
+        private void start_button_click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(ip_textbox.Text) || string.IsNullOrEmpty(port_textbox.Text)
+                || string.IsNullOrEmpty(transaction_period_textbox.Text)
+                || string.IsNullOrEmpty(transaction_time_textbox.Text)) ;
+            else
+            {
+                if ((string)start_button.Content == "Stop")
+                {
+                    start_button.Content = "Start";
+                }
+                else
+                {
+                    transaction_queue_textbox.Text = "";
+                    start_button.Content = "Stop";
+                    Data_Sender(Convert.ToInt32(transaction_time_textbox.Text), Convert.ToInt32(transaction_period_textbox.Text),
+                        ip_textbox.Text, Convert.ToInt32(port_textbox.Text));
+                }
+            }
+        }
 
         private void transaction_queue_textbox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -132,16 +176,6 @@ namespace LCPClient
         {
             Application.Current.Shutdown(); // 어플리케이션을 종료
             Environment.Exit(0); // 어플리케이션의 모든 쓰레드를 멈추어 종료시킴
-        }
-
-        private void start(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void start_button_click(object sender, RoutedEventArgs e)
-        {
-
         }
     }
 }

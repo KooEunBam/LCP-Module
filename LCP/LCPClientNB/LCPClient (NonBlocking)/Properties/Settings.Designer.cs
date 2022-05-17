@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WpfApp1.Properties
+namespace LCPClient__NonBlocking_.Properties
 {
 
 

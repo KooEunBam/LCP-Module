@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LCPClient__WPF_.Common
+namespace LCPClient__NonBlocking_.Common
 {
     internal class Zip
     {
