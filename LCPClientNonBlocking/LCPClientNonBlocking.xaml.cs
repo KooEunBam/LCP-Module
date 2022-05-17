@@ -31,155 +31,164 @@ namespace LCPClientNonBlocking
             InitializeComponent();
         }
 
-        private async void Data_Sender(int num, int cycle, string ip, int port)
+        private async void DataSender(int num, int cycle, string ip, int port)
         {
-            int data_sequence = 0; // data sequence
-            //int data_sequence = 2147483640; // data sequence overflow test
-            int data_sequence_overflow = 0; // data sequence to check overflow
+            int dataSequence = 0; // data sequence
+            //int dataSequence = 2147483640; // data sequence overflow test
+            int dataSequenceOverflow = 0; // data sequence to check overflow
             int count = 1; // count for data
-            int ten_sec_timer = 10000; // ten sec to ms
+            int tenSecTimer = 10000; // ten sec to ms
 
             byte[] data = new byte[64]; // 64byte data 
-            byte[] byte_data_seq = new byte[4]; // int sequence to byte
+            byte[] byteDataSeq = new byte[4]; // int sequence to byte
             byte[] datagram = new byte[1024]; // seq + compress_data
-            byte[] compressed_data; // compressed 64byte data
-            List<byte> datagram_list = new List<byte>(); // list <= seq + compress_data (두 배열을 합하기 위해 list활용)
+            byte[] compressedData; // compressed 64byte data
+            List<byte> datagramList = new List<byte>(); // list <= seq + compress_data (두 배열을 합하기 위해 list활용)
 
             IPEndPoint ep = new IPEndPoint(IPAddress.Parse(ip), port); // 서버의 주소 지정
             Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp); // udp 소켓 client 선언
 
-            if (num > 0)
+            if (num > 0) // 전송 횟수가 0보다 클 경우
             {
                 while (count <= num)
                 {
-                    if ((string)start_button.Content == "Start")
+                    if ((string)startButton.Content == "Start")
                     {
                         break;
-                    }// start 버튼의 content가 start인 경우 1. 처음시작, 2. Stop버튼 누른경우
-                     // 2번만 해당하며, while문을 탈출 하더라도 click시 함수 인자값을 다시 넣으므로 실행에 문제없음
+                    } // start 버튼의 content가 start인 경우 1. 처음시작, 2. Stop버튼 누른경우
+                      // 2번만 해당하며, while문을 탈출 하더라도 click시 함수 인자값을 다시 넣으므로 실행에 문제없음
 
                     random.NextBytes(data); // data를 랜덤 바이트로 채움
-                    compressed_data = Zip.Compress(Encoding.Default.GetString(data)); // data를 압축
+                    compressedData = Zip.Compress(Encoding.Default.GetString(data)); // data를 압축
 
-                    byte_data_seq = BitConverter.GetBytes(data_sequence); // data_sequence를 byte로 변환
-                    datagram_list.AddRange(byte_data_seq); // list에 data_seq, compress_data모두 넣고
-                    datagram_list.AddRange(compressed_data);
+                    byteDataSeq = BitConverter.GetBytes(dataSequence); // dataSequence를 byte로 변환
+                    datagramList.AddRange(byteDataSeq); // list에 data_seq, compress_data모두 넣고
+                    datagramList.AddRange(compressedData);
 
-                    datagram = datagram_list.ToArray(); // datagram에 두 배열 저장
-                    datagram_list.Clear(); // list 초기화
+                    datagram = datagramList.ToArray(); // datagram에 두 배열 저장
+                    datagramList.Clear(); // list 초기화
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (data_sequence != int.MaxValue) // overflow에 해당하지 않으면
+                    if (dataSequence != int.MaxValue) // overflow에 해당하지 않으면
                     {
-                        if ((ten_sec_timer - (cycle * count)) < 0) // 약 10초 ( 10초 + cycle*count가 정확한 시간)
+                        if ((tenSecTimer - (cycle * count)) < 0) // 약 10초 ( 10초 + cycle*count가 정확한 시간)
                         {
                             count = 0;
 
-                            if (data_sequence_overflow > 0)
+                            if (dataSequenceOverflow > 0)
                             {
-                                transaction_queue_textbox.Text =
-                                    $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
+                                transactionQueueTextBox.Text =
+                                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
                             }
                             else
                             {
-                                transaction_queue_textbox.Text = $"데이타 보낸 수 : {data_sequence}";
+                                transactionQueueTextBox.Text = $"데이타 보낸 수 : {dataSequence}";
                             }
                         }
-                        data_sequence++;
+                        dataSequence++;
                     }
                     else // overflow 발생시
                     {
-                        data_sequence = 0;
-                        data_sequence_overflow++;
+                        dataSequence = 0;
+                        dataSequenceOverflow++;
                     }
                     count++;
                     await Task.Delay(cycle);
                 }
-                transaction_queue_textbox.Text =
-                    $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
+                transactionQueueTextBox.Text =
+                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
             }
             else if (num == 0)
             {
                 while (true)
                 {
-                    if ((string)start_button.Content == "Start")
+                    if ((string)startButton.Content == "Start")
                     {
                         break;
-                    }// start 버튼의 content가 start인 경우 1. 처음시작, 2. Stop버튼 누른경우
-                     // 2번만 해당하며, while문을 탈출 하더라도 click시 함수 인자값을 다시 넣으므로 실행에 문제없음
+                    }
 
                     random.NextBytes(data); // data 임의의 바이트로 채움
-                    compressed_data = Zip.Compress(Encoding.Default.GetString(data)); // data 압축
+                    compressedData = Zip.Compress(Encoding.Default.GetString(data)); // data 압축
 
-                    byte_data_seq = BitConverter.GetBytes(data_sequence);
-                    datagram_list.AddRange(byte_data_seq); // list에 data_seq, compress_data모두 넣고
-                    datagram_list.AddRange(compressed_data);
+                    byteDataSeq = BitConverter.GetBytes(dataSequence);
+                    datagramList.AddRange(byteDataSeq); // list에 data_seq, compress_data모두 넣고
+                    datagramList.AddRange(compressedData);
 
-                    datagram = datagram_list.ToArray(); // datagram에 두 배열 저장
-                    datagram_list.Clear(); // list 초기화
+                    datagram = datagramList.ToArray(); // datagram에 두 배열 저장
+                    datagramList.Clear(); // list 초기화
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (data_sequence != int.MaxValue) // overflow에 해당하지 않으면
+                    if (dataSequence != int.MaxValue)
                     {
-                        if ((ten_sec_timer - (cycle * count)) < 0) // 약 10초 ( 10초 + cycle*count가 정확한 시간)
+                        if ((tenSecTimer - (cycle * count)) < 0)
                         {
                             count = 0;
 
-                            if (data_sequence_overflow > 0)
+                            if (dataSequenceOverflow > 0)
                             {
-                                transaction_queue_textbox.Text =
-                                    $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
+                                transactionQueueTextBox.Text =
+                                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
                             }
                             else
                             {
-                                transaction_queue_textbox.Text = $"데이타 보낸 수 : {data_sequence}";
+                                transactionQueueTextBox.Text = $"데이타 보낸 수 : {dataSequence}";
                             }
                         }
-                        data_sequence++;
+                        dataSequence++;
                     }
-                    else // overflow 발생시
+                    else
                     {
-                        data_sequence = 0;
-                        data_sequence_overflow++;
+                        dataSequence = 0;
+                        dataSequenceOverflow++;
                     }
                     count++;
                     await Task.Delay(cycle);
                 }
-                transaction_queue_textbox.Text =
-                    $"데이타 보낸 수 : {data_sequence}, 오버플로우 횟수 : {data_sequence_overflow}";
+                transactionQueueTextBox.Text =
+                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
             }
         }
 
-        private void start_button_click(object sender, RoutedEventArgs e)
+        //------------------------------------------------------------------------------------
+        // Start 버튼 누르면, 인자값들이 빈칸이라면 작동 x
+        // Start 버튼 누르면 초기화 및 Stop 버튼으로 바뀜. 
+        // Stop  버튼 누르면(Start 버튼을 누르면 Stop으로 바뀜) 멈춤
+        //------------------------------------------------------------------------------------
+        private void StartButtonClick(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(ip_textbox.Text) || string.IsNullOrEmpty(port_textbox.Text)
-                || string.IsNullOrEmpty(transaction_period_textbox.Text)
-                || string.IsNullOrEmpty(transaction_time_textbox.Text)) ;
+            if (string.IsNullOrEmpty(ipTextBox.Text) || string.IsNullOrEmpty(portTextBox.Text)
+                || string.IsNullOrEmpty(transactionPeriodTextBox.Text)
+                || string.IsNullOrEmpty(transactionTimeTextBox.Text)) ; // 비어있을시 작동 x
             else
             {
-                if ((string)start_button.Content == "Stop")
+                if ((string)startButton.Content == "Stop")
                 {
-                    start_button.Content = "Start";
+                    startButton.Content = "Start";
                 }
                 else
                 {
-                    transaction_queue_textbox.Text = "";
-                    start_button.Content = "Stop";
-                    Data_Sender(Convert.ToInt32(transaction_time_textbox.Text), Convert.ToInt32(transaction_period_textbox.Text),
-                        ip_textbox.Text, Convert.ToInt32(port_textbox.Text));
+                    transactionQueueTextBox.Text = "";
+                    startButton.Content = "Stop";
+                    DataSender(Convert.ToInt32(transactionTimeTextBox.Text), Convert.ToInt32(transactionPeriodTextBox.Text),
+                        ipTextBox.Text, Convert.ToInt32(portTextBox.Text));
                 }
             }
         }
 
-        private void transaction_queue_textbox_TextChanged(object sender, TextChangedEventArgs e)
+        //------------------------------------------------------------------------------------
+        // TextBox의 Text가 바뀌면 끝까지 스크롤해서 아래까지 내림.
+        //------------------------------------------------------------------------------------
+        private void transactionQueueTextBoxTextChanged(object sender, TextChangedEventArgs e)
         {
-
-            transaction_queue_textbox.ScrollToEnd();
+            transactionQueueTextBox.ScrollToEnd();
         }
 
-        private void Window_Closed(object sender, EventArgs e)
+        //------------------------------------------------------------------------------------
+        // 창을 닫을시 쓰레드 및 어플리케이션 종료하는 함수
+        //------------------------------------------------------------------------------------
+        private void WindowClosed(object sender, EventArgs e)
         {
             Application.Current.Shutdown(); // 어플리케이션을 종료
             Environment.Exit(0); // 어플리케이션의 모든 쓰레드를 멈추어 종료시킴

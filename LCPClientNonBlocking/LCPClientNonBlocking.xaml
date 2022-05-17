@@ -5,25 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LCPClientNonBlocking"
         mc:Ignorable="d"
-        Title="LCPClientNonBlocking" Height="450" Width="630">
+        Title="LCPClientNonBlocking" Height="450" Width="630" Closed="WindowClosed">
     <Grid Margin="10,10,10,10">
-        <Button Name="start_button" Margin="30" Content="Start" 
-                HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="30" Width="100" Click="start_button_click"/>
+        <Button Name="startButton" Margin="30" Content="Start" 
+                HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="30" Width="100" Click="StartButtonClick"/>
         <StackPanel Margin="10" HorizontalAlignment="Left" VerticalAlignment="Top">
             <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
-                <Label Name ="ip_label" Margin="10" Content="IP : " Height="30" Width="60"></Label>
-                <TextBox Name="ip_textbox" Margin="10" Height="30" Width="160"></TextBox>
-                <Label Name ="port_label" Margin="10" Content="Port" Height="30" Width="60"></Label>
-                <TextBox Name="port_textbox" Margin="10" Height="30" Width="160"></TextBox>
+                <Label Name ="ipLabel" Margin="10" Content="IP : " Height="30" Width="60"></Label>
+                <TextBox Name="ipTextBox" Margin="10" Height="30" Width="160"></TextBox>
+                <Label Name ="portLabel" Margin="10" Content="Port" Height="30" Width="60"></Label>
+                <TextBox Name="portTextBox" Margin="10" Height="30" Width="160"></TextBox>
             </StackPanel>
             <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
-                <Label Name="transaction_period_label" Margin="10" Content="반복주기 : " Height="30" Width="60"></Label>
-                <TextBox Name="transaction_period_textbox" Margin="10" Height="30" Width="160"></TextBox>
-                <Label Name="transaction_time_label" Margin="10" Content="반복횟수 : " Height="30" Width="60"></Label>
-                <TextBox Name="transaction_time_textbox" Margin="10" Height="30" Width="160"></TextBox>
+                <Label Name="transactionPeriodLabel" Margin="10" Content="반복주기 : " Height="30" Width="60"></Label>
+                <TextBox Name="transactionPeriodTextBox" Margin="10" Height="30" Width="160"></TextBox>
+                <Label Name="transactionTimeLabel" Margin="10" Content="반복횟수 : " Height="30" Width="60"></Label>
+                <TextBox Name="transactionTimeTextBox" Margin="10" Height="30" Width="160"></TextBox>
             </StackPanel>
             <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
-                <TextBox Margin="10" Name="transaction_queue_textbox" TextChanged="transaction_queue_textbox_TextChanged"
+                <TextBox Margin="10" Name="transactionQueueTextBox" TextChanged="transactionQueueTextBoxTextChanged"
                  Height="100" Width="530"></TextBox>
             </StackPanel>
         </StackPanel>
