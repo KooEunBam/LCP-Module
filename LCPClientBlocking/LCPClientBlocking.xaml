@@ -1,0 +1,31 @@
+﻿<Window x:Class="LCPClientBlocking.LCPClientBlock"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LCPClientBlocking"
+        mc:Ignorable="d"
+        Title="LCPClientBlocking" Height="450" Width="630">
+    <Grid Margin="10,10,10,10">
+        <Button Name="start_button" Margin="30" Content="Start" 
+                HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="30" Width="100" Click="start_button_click"/>
+        <StackPanel Margin="10" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
+                <Label Name ="ip_label" Margin="10" Content="IP : " Height="30" Width="60"></Label>
+                <TextBox Name="ip_textbox" Margin="10" Height="30" Width="160"></TextBox>
+                <Label Name ="port_label" Margin="10" Content="Port" Height="30" Width="60"></Label>
+                <TextBox Name="port_textbox" Margin="10" Height="30" Width="160"></TextBox>
+            </StackPanel>
+            <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
+                <Label Name="transaction_period_label" Margin="10" Content="반복주기 : " Height="30" Width="60"></Label>
+                <TextBox Name="transaction_period_textbox" Margin="10" Height="30" Width="160"></TextBox>
+                <Label Name="transaction_time_label" Margin="10" Content="반복횟수 : " Height="30" Width="60"></Label>
+                <TextBox Name="transaction_time_textbox" Margin="10" Height="30" Width="160"></TextBox>
+            </StackPanel>
+            <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
+                <TextBox Margin="10" Name="transaction_queue_textbox" TextChanged="transaction_queue_textbox_TextChanged"
+                 Height="100" Width="530"></TextBox>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,4 +1,4 @@
-﻿using LCPClient__NonBlocking_.Common;
+﻿using LCPClientBlocking.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,17 +14,17 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using System.IO;
 
-namespace LCPClient__NonBlocking_
+namespace LCPClientBlocking
 {
     /// <summary>
-    /// Interaction logic for LCP_Client_NB.xaml
+    /// Interaction logic for LCPClientBlocking.xaml
     /// </summary>
-    public partial class LCP_Client_NB : Window
+    public partial class LCPClientBlock : Window
     {
         private readonly Random random;
-        public LCP_Client_NB()
+
+        public LCPClientBlock()
         {
             this.random = new Random();
 
@@ -48,18 +48,20 @@ namespace LCPClient__NonBlocking_
             IPEndPoint ep = new IPEndPoint(IPAddress.Parse(ip), port); // 서버의 주소 지정
             Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp); // udp 소켓 client 선언
 
-            if (num > 0)
+            if (num > 0) // 전송 횟수가 0보다 클 경우
             {
                 while (count <= num)
                 {
                     if ((string)start_button.Content == "Start")
                     {
                         break;
-                    }
-                    random.NextBytes(data);
-                    compressed_data = Zip.Compress(Encoding.Default.GetString(data));
+                    } // start 버튼의 content가 start인 경우 1. 처음시작, 2. Stop버튼 누른경우
+                      // 2번만 해당하며, while문을 탈출 하더라도 click시 함수 인자값을 다시 넣으므로 실행에 문제없음
 
-                    byte_data_seq = BitConverter.GetBytes(data_sequence);
+                    random.NextBytes(data); // data를 랜덤 바이트로 채움
+                    compressed_data = Zip.Compress(Encoding.Default.GetString(data)); // data를 압축
+
+                    byte_data_seq = BitConverter.GetBytes(data_sequence); // data_sequence를 byte로 변환
                     datagram_list.AddRange(byte_data_seq); // list에 data_seq, compress_data모두 넣고
                     datagram_list.AddRange(compressed_data);
 
@@ -68,9 +70,9 @@ namespace LCPClient__NonBlocking_
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (data_sequence != 2147483647)
+                    if (data_sequence != 2147483647) // overflow에 해당하지 않으면
                     {
-                        if ((ten_sec_timer - (cycle * count)) < 0)
+                        if ((ten_sec_timer - (cycle * count)) < 0) // 약 10초 ( 10초 + cycle*count가 정확한 시간)
                         {
                             count = 0;
 
@@ -86,9 +88,9 @@ namespace LCPClient__NonBlocking_
                         }
                         data_sequence++;
                     }
-                    else
+                    else // overflow 발생시
                     {
-                        data_sequence = 0;
+                        data_sequence = 1;
                         data_sequence_overflow++;
                     }
                     count++;
@@ -104,8 +106,8 @@ namespace LCPClient__NonBlocking_
                         break;
                     }
 
-                    random.NextBytes(data);
-                    compressed_data = Zip.Compress(Encoding.Default.GetString(data));
+                    random.NextBytes(data); // data 임의의 바이트로 채움
+                    compressed_data = Zip.Compress(Encoding.Default.GetString(data)); // data 압축
 
                     byte_data_seq = BitConverter.GetBytes(data_sequence);
                     datagram_list.AddRange(byte_data_seq); // list에 data_seq, compress_data모두 넣고
@@ -145,11 +147,16 @@ namespace LCPClient__NonBlocking_
             }
         }
 
+        //------------------------------------------------------------------------------------
+        // Start 버튼 누르면, 인자값들이 빈칸이라면 작동 x
+        // Start 버튼 누르면 초기화 및 Stop 버튼으로 바뀜. 
+        // Stop  버튼 누르면(Start 버튼을 누르면 Stop으로 바뀜) 멈춤
+        //------------------------------------------------------------------------------------
         private void start_button_click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(ip_textbox.Text) || string.IsNullOrEmpty(port_textbox.Text)
                 || string.IsNullOrEmpty(transaction_period_textbox.Text)
-                || string.IsNullOrEmpty(transaction_time_textbox.Text)) ;
+                || string.IsNullOrEmpty(transaction_time_textbox.Text)) ; // 비어있을시 작동 x
             else
             {
                 if ((string)start_button.Content == "Stop")
@@ -166,12 +173,18 @@ namespace LCPClient__NonBlocking_
             }
         }
 
+        //------------------------------------------------------------------------------------
+        // TextBox의 Text가 바뀌면 끝까지 스크롤해서 아래까지 내림.
+        //------------------------------------------------------------------------------------
         private void transaction_queue_textbox_TextChanged(object sender, TextChangedEventArgs e)
         {
 
             transaction_queue_textbox.ScrollToEnd();
         }
 
+        //------------------------------------------------------------------------------------
+        // 창을 닫을시 쓰레드 및 어플리케이션 종료하는 함수
+        //------------------------------------------------------------------------------------
         private void Window_Closed(object sender, EventArgs e)
         {
             Application.Current.Shutdown(); // 어플리케이션을 종료

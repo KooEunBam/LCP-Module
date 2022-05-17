@@ -1,4 +1,4 @@
-﻿using LCPServerNB.Common;
+﻿using LCPServerNonBlocking.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,13 +16,14 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace LCPServerNB
+namespace LCPServerNonBlocking
 {
     /// <summary>
-    /// Interaction logic for LCP_Server_NB.xaml
+    /// Interaction logic for LCPServerNonBlocking.xaml
     /// </summary>
-    public partial class LCP_Server_NB : Window
+    public partial class LCPServerNB : Window
     {
+
         private readonly AutoResetEvent autoresetevent;
         private readonly AutoResetEvent autoresetevent2;
         private readonly Socket socket; // UdpClient 객체
@@ -38,7 +39,7 @@ namespace LCPServerNB
         private Thread th1;
         private Thread th2;
 
-        public LCP_Server_NB()
+        public LCPServerNB()
         {
             this.autoresetevent = new AutoResetEvent(false);
             this.autoresetevent2 = new AutoResetEvent(false);
@@ -111,6 +112,7 @@ namespace LCPServerNB
                     seq_overflow_changed++;
                 }
             }
+
         }
 
         private void FileSave_Thread()
@@ -185,8 +187,6 @@ namespace LCPServerNB
                 // DeCompress -> .zip save
                 //Zip.Decompress(Encoding.Default.GetString(newdata.data));
 
-
-                //Thread.Sleep(thread_sleep);
             }
         }
 
@@ -218,9 +218,7 @@ namespace LCPServerNB
         {
             Result_TextBox.ScrollToEnd();
         }
-
-
     }
-}
 
+}
 
