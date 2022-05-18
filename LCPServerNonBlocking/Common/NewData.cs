@@ -8,7 +8,7 @@ namespace LCPServerNonBlocking.Common
 {
     public class NewData
     {
-        public int seq;
+        public uint seq;
         public byte[] data = new byte[68];
 
         public NewData()
@@ -17,7 +17,7 @@ namespace LCPServerNonBlocking.Common
             data = null;
         }
 
-        public NewData(int seq, byte[] data)
+        public NewData(uint seq, byte[] data)
         {
             this.seq = seq;
             this.data = data;

@@ -63,10 +63,12 @@ namespace LCPServerNonBlocking
         {
             autoresetevent.WaitOne(); // 신호대기
 
-            int seq = 0;
-            //int seq = 2147483340;
+            uint seq = 0;
+            //int seq = 4294967295;
+
             int recv;
             //List<byte> list = new List<byte>();
+            
             byte[] data = new byte[1024];
 
             Dispatcher.Invoke(() =>
@@ -117,14 +119,14 @@ namespace LCPServerNonBlocking
                     continue; // Nonblocking 모드에서 읽을 데이터가 없으면 SocketException 리턴함
                 }
 
-                NewData newdata = new NewData(seq, data);
+                NewData newdata = new NewData(Convert.ToUInt32(seq), data);
 
                 lock (lockobject)
                 {
                     queue.Enqueue(newdata);
                 }
 
-                if (newdata.seq != int.MaxValue) // int.MaxValue = 2147483647
+                if (newdata.seq != uint.MaxValue) // int.MaxValue = 2147483647
                 {
                     seq++; // seq값 증가
                 }
@@ -139,20 +141,30 @@ namespace LCPServerNonBlocking
 
         private void FileSaveThread()
         {
-            int packet_lost = 0;
-            int oldValue = 0;
-            int currentValue = 0;
+            uint packet_lost = 0;
+            uint oldValue = 0;
+            uint currentValue = 0;
 
             List<byte> sequenceList = new List<byte>(); // sequenceList 생성
 
             while (true)
             {
+                NewData newdata = new NewData(); // NewData객체 생성
+
                 if ((string)Dispatcher.Invoke(() => StartButton.Content) == "Start") // 버튼이 Start상태라면 신호 대기
                 {
+                    Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
+                        "Queue_seq : " + newdata.seq + " Queue_overflow : " + seqOverflowChanged + "\n");
+                    Dispatcher.Invoke(() => dataResultTextBox.Text = dataResultTextBox.Text +
+                        "Data_seq : " + currentValue.ToString());
+                    Dispatcher.Invoke(() => dataResultTextBox.Text = dataResultTextBox.Text +
+                        " Data_Overflow : " + dataOverflowChanged);
+                    Dispatcher.Invoke(() => dataResultTextBox.Text = dataResultTextBox.Text +
+                        "\nPacket_Lost : " + packet_lost + "\n");
+
                     autoresetevent2.WaitOne();
                 }
 
-                NewData newdata = new NewData(); // NewData객체 생성
 
                 lock (lockobject)
                 {
@@ -175,20 +187,29 @@ namespace LCPServerNonBlocking
                         dataOverflowChanged++;
                     }
                     oldValue = currentValue;
-                    currentValue = BitConverter.ToInt32(sequenceList.ToArray(), 0);
+                    currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0);
 
-                    if(currentValue - oldValue != 1)
+                    if (!(currentValue == oldValue + 1))
                     {
-                        if(currentValue - oldValue < 0)
-                        {
-                            packet_lost += int.MaxValue - oldValue + currentValue;
-                        }
-                        else
-                        {
-                            if(currentValue > 0)
-                                packet_lost += (currentValue - oldValue - 1);
-                        }
+                        packet_lost++;
+                        Dispatcher.Invoke(() => dataResultTextBox.Text += "");   
                     }
+                    else
+                    {
+
+                    }
+                    //if(currentValue - oldValue != 1)
+                    //{
+                    //    if(currentValue - oldValue < 0)
+                    //    {
+                    //        packet_lost += uint.MaxValue - oldValue + currentValue;
+                    //    }
+                    //    else
+                    //    {
+                    //        if(currentValue > 0)
+                    //            packet_lost += (currentValue - oldValue - 1);
+                    //    }
+                    //}
 
                     if (currentValue % 100 == 0)
                     {

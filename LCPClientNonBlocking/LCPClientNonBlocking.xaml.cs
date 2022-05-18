@@ -33,9 +33,10 @@ namespace LCPClientNonBlocking
 
         private async void DataSender(int num, int cycle, string ip, int port)
         {
-            int dataSequence = 0; // data sequence
+            
+            uint dataSequence = 0; // data sequence
             //int dataSequence = 2147483640; // data sequence overflow test
-            int dataSequenceOverflow = 0; // data sequence to check overflow
+            uint dataSequenceOverflow = 0; // data sequence to check overflow
             int count = 1; // count for data
             int tenSecTimer = 10000; // ten sec to ms
 
@@ -70,7 +71,7 @@ namespace LCPClientNonBlocking
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (dataSequence != int.MaxValue) // overflow에 해당하지 않으면
+                    if (dataSequence != uint.MaxValue) // overflow에 해당하지 않으면
                     {
                         if ((tenSecTimer - (cycle * count)) < 0) // 약 10초 ( 10초 + cycle*count가 정확한 시간)
                         {
@@ -98,7 +99,7 @@ namespace LCPClientNonBlocking
                     await Task.Delay(cycle);
                 }
                 transactionQueueTextBox.Text = transactionQueueTextBox.Text +
-                    $"\n데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
+                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
             }
             else if (num == 0)
             {
@@ -121,7 +122,7 @@ namespace LCPClientNonBlocking
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (dataSequence != int.MaxValue)
+                    if (dataSequence != uint.MaxValue)
                     {
                         if ((tenSecTimer - (cycle * count)) < 0)
                         {
@@ -149,7 +150,7 @@ namespace LCPClientNonBlocking
                     await Task.Delay(cycle);
                 }
                 transactionQueueTextBox.Text = transactionQueueTextBox.Text +
-                    $"\n데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
+                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
             }
         }
 
