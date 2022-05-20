@@ -1,6 +1,7 @@
 ﻿using LCPServerNonBlocking.Common;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -69,8 +70,8 @@ namespace LCPServerNonBlocking
             //int seq = 4294967295;
 
             int recv;
-            //List<byte> list = new List<byte>();
-            
+            List<byte> list = new List<byte>();
+
             byte[] data = new byte[1024];
 
             Dispatcher.Invoke(() =>
@@ -127,7 +128,18 @@ namespace LCPServerNonBlocking
                 {
                     queue.Enqueue(newdata);
                 }
-                
+                //------------------------------------------------------------------------
+                // Enqueue 되고 있는 data의 int sequence 문제없는지 확인 하기 위한 함수
+                //------------------------------------------------------------------------
+
+                //if (newdata.data != null)
+                //{
+                //    for (int j = 0; j < 4; j++)
+                //        list.Add(newdata.data[j]);
+                //}
+                //Debug.Write(Convert.ToString(BitConverter.ToUInt32(list.ToArray(), 0)) + " ");
+                //list.Clear();
+
                 seq++; // seq증가
                 if(seq == 0) // overflow 발생 후 seq가 0이 되면
                 {
@@ -171,10 +183,14 @@ namespace LCPServerNonBlocking
                     for(int i = 0; i < queue.Count(); i++)
                     {
                         newdata = queue.Dequeue();
-                        for(int j = 0; j < 4; j++)
-                            sequenceList.Add(newdata.data[j]); // list에 sequence (4byte)부터 넣어서 0번째 인덱스 부터 3번째 인덱스까지 추가함
                     }
                 }
+                if (newdata.data != null)
+                {
+                    for (int j = 0; j < 4; j++)
+                        sequenceList.Add(newdata.data[j]);
+                }
+                //sequenceList.Add(newdata.data[j]); // list에 sequence (4byte)부터 넣어서 0번째 인덱스 부터 3번째 인덱스까지 추가함
 
                 if (newdata.data != null)
                 {
@@ -182,6 +198,7 @@ namespace LCPServerNonBlocking
 
                     oldValue = currentValue; // oldValue에 현재값 저장
                     currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0); 
+                    Debug.Write(newdata)
                     sequenceList.Clear();
                     
                     if(!(oldValue == 0 && currentValue == 0)) // 처음에 oldvalue와 currentvalue가 0인 상태
