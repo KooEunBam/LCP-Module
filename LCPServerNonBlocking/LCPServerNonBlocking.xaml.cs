@@ -29,11 +29,12 @@ namespace LCPServerNonBlocking
         private readonly Queue<NewData> queue;
         private readonly object lockobject;
 
-        private const int threadSleep = 5;
+        private const int threadSleep = 50;
         private const int socketTimeout = 5000;
+        private const int display = 200;
 
-        private int seqOverflowChanged;
-        private int dataOverflowChanged;
+        private uint seqOverflowChanged;
+        private uint dataOverflowChanged;
 
         private IPAddress ipAddress; // IP주소
         private IPEndPoint endpoint; // Port번호
@@ -64,6 +65,7 @@ namespace LCPServerNonBlocking
             autoresetevent.WaitOne(); // 신호대기
 
             uint seq = 0;
+            uint seq_overflow = 0;
             //int seq = 4294967295;
 
             int recv;
@@ -125,16 +127,13 @@ namespace LCPServerNonBlocking
                 {
                     queue.Enqueue(newdata);
                 }
-
-                if (newdata.seq != uint.MaxValue) // int.MaxValue = 2147483647
+                
+                seq++; // seq증가
+                if(seq == 0) // overflow 발생 후 seq가 0이 되면
                 {
-                    seq++; // seq값 증가
+                    seq_overflow++; // overflow횟수 +1;
                 }
-                else
-                {
-                    seq = 0;
-                    seqOverflowChanged++;
-                }
+                
                 Thread.Sleep(threadSleep);
             }
         }
@@ -146,6 +145,7 @@ namespace LCPServerNonBlocking
             uint currentValue = 0;
 
             List<byte> sequenceList = new List<byte>(); // sequenceList 생성
+            List<NewData> newdataList = new List<NewData>();
 
             while (true)
             {
@@ -168,9 +168,11 @@ namespace LCPServerNonBlocking
 
                 lock (lockobject)
                 {
-                    if (queue.Count() != 0)
+                    for(int i = 0; i < queue.Count(); i++)
                     {
-                        newdata = queue.Dequeue(); // 큐에 데이터가 있는 상태라면 Dequeue
+                        newdata = queue.Dequeue();
+                        for(int j = 0; j < 4; j++)
+                            sequenceList.Add(newdata.data[j]); // list에 sequence (4byte)부터 넣어서 0번째 인덱스 부터 3번째 인덱스까지 추가함
                     }
                 }
 
@@ -178,51 +180,29 @@ namespace LCPServerNonBlocking
                 {
                     //byte[] decompress_data;
 
-                    for (int i = 0; i < 4; i++)
+                    oldValue = currentValue; // oldValue에 현재값 저장
+                    currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0); 
+                    sequenceList.Clear();
+                    
+                    if(!(oldValue == 0 && currentValue == 0)) // 처음에 oldvalue와 currentvalue가 0인 상태
                     {
-                        sequenceList.Add(newdata.data[i]); // list에 sequence (4byte)부터 넣어서 0번째 인덱스 부터 3번째 인덱스까지 추가함
+                        if(!(currentValue == oldValue + 1))
+                        {
+                            packet_lost++;
+                            Dispatcher.Invoke(() => dataResultTextBox.Text +=
+                                "OldValue : " + oldValue.ToString() + " Current Value : " + currentValue.ToString() 
+                                + " Packet_Lost : " + packet_lost + "\n");
+                        }
                     }
-                    if (BitConverter.ToInt32(sequenceList.ToArray(), 0) == int.MaxValue)
-                    {
-                        dataOverflowChanged++;
-                    }
-                    oldValue = currentValue;
-                    currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0);
-
-                    if (!(currentValue == oldValue + 1))
-                    {
-                        packet_lost++;
-                        Dispatcher.Invoke(() => dataResultTextBox.Text += "");   
-                    }
-                    else
-                    {
-
-                    }
-                    //if(currentValue - oldValue != 1)
-                    //{
-                    //    if(currentValue - oldValue < 0)
-                    //    {
-                    //        packet_lost += uint.MaxValue - oldValue + currentValue;
-                    //    }
-                    //    else
-                    //    {
-                    //        if(currentValue > 0)
-                    //            packet_lost += (currentValue - oldValue - 1);
-                    //    }
-                    //}
-
-                    if (currentValue % 100 == 0)
+                    if (currentValue % display == 0)
                     {
                         Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
-                            "Queue_seq : " + newdata.seq + " Queue_overflow : " + seqOverflowChanged + "\n");
-                        Dispatcher.Invoke(() => dataResultTextBox.Text = dataResultTextBox.Text +
+                        "Queue_seq : " + newdata.seq + " Queue_overflow : " + seqOverflowChanged + "\n");
+                        Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
                             "Data_seq : " + currentValue.ToString());
-                        Dispatcher.Invoke(() => dataResultTextBox.Text = dataResultTextBox.Text +
-                            " Data_Overflow : " + dataOverflowChanged);
-                        Dispatcher.Invoke(() => dataResultTextBox.Text = dataResultTextBox.Text +
-                            "\nPacket_Lost : " + packet_lost + "\n");
+                        Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
+                            " Data_Overflow : " + dataOverflowChanged + "\n");
                     }
-                    sequenceList.Clear();
 
                     //for (int i = 4; i < newdata.data.Length; i++) // 4부터 마지막 인덱스까지는 압축한 data
                     //{
@@ -276,3 +256,6 @@ namespace LCPServerNonBlocking
     }
 }
 
+// dequeue -> newdata -> list
+// old value, current value , packet lost
+// socket class close and open

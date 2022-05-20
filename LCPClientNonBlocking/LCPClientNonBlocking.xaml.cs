@@ -71,37 +71,36 @@ namespace LCPClientNonBlocking
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (dataSequence != uint.MaxValue) // overflow에 해당하지 않으면
+                    if ((tenSecTimer - (cycle * count)) < 0) // 10초 + cycle 마다 수행함.
                     {
-                        if ((tenSecTimer - (cycle * count)) < 0) // 약 10초 ( 10초 + cycle*count가 정확한 시간)
-                        {
-                            count = 0;
+                        count = 0;
 
-                            if (dataSequenceOverflow > 0)
-                            {
-                                transactionQueueTextBox.Text = transactionQueueTextBox.Text +
-                                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow} \n";
-                            }
-                            else
-                            {
-                                transactionQueueTextBox.Text = transactionQueueTextBox.Text +
-                                    $"데이타 보낸 수 : {dataSequence} \n";
-                            }
+                        if (dataSequenceOverflow > 0)
+                        {
+                            transactionQueueTextBox.Text = transactionQueueTextBox.Text +
+                                $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}\n";
                         }
-                        dataSequence++;
+                        else
+                        {
+                            transactionQueueTextBox.Text = transactionQueueTextBox.Text +
+                                $"데이타 보낸 수 : {dataSequence}\n";
+                        }
                     }
-                    else // overflow 발생시
+
+                    dataSequence++;
+
+                    if(dataSequence == 0) // 증가된 dataSequence값이 0이면, 이전값은 최대 정수가 들어갔다는 의미
                     {
-                        dataSequence = 0;
                         dataSequenceOverflow++;
                     }
+
                     count++;
                     await Task.Delay(cycle);
                 }
                 transactionQueueTextBox.Text = transactionQueueTextBox.Text +
-                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}";
+                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}"; // while문 탈출시 출력됨.
             }
-            else if (num == 0)
+            else if (num == 0) // 무한 반복 수행
             {
                 while (true)
                 {
@@ -122,30 +121,29 @@ namespace LCPClientNonBlocking
 
                     client.SendTo(datagram, ep); // data는 압축상태, seq 전송
 
-                    if (dataSequence != uint.MaxValue)
+                    if ((tenSecTimer - (cycle * count)) < 0) // 10초 + cycle 마다 수행함.
                     {
-                        if ((tenSecTimer - (cycle * count)) < 0)
-                        {
-                            count = 0;
+                        count = 0;
 
-                            if (dataSequenceOverflow > 0)
-                            {
-                                transactionQueueTextBox.Text = transactionQueueTextBox.Text +
-                                    $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}\n";
-                            }
-                            else
-                            {
-                                transactionQueueTextBox.Text = transactionQueueTextBox.Text +
-                                    $"데이타 보낸 수 : {dataSequence}\n";
-                            }
+                        if (dataSequenceOverflow > 0)
+                        {
+                            transactionQueueTextBox.Text = transactionQueueTextBox.Text +
+                                $"데이타 보낸 수 : {dataSequence}, 오버플로우 횟수 : {dataSequenceOverflow}\n";
                         }
-                        dataSequence++;
+                        else
+                        {
+                            transactionQueueTextBox.Text = transactionQueueTextBox.Text +
+                                $"데이타 보낸 수 : {dataSequence}\n";
+                        }
                     }
-                    else
+
+                    dataSequence++;
+
+                    if (dataSequence == 0) // 증가된 dataSequence값이 0이면, 이전값은 최대 정수가 들어갔다는 의미
                     {
-                        dataSequence = 0;
                         dataSequenceOverflow++;
                     }
+
                     count++;
                     await Task.Delay(cycle);
                 }

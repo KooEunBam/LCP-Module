@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LCPServerNonBlocking"
         mc:Ignorable="d"
-        Title="LCPServerNonBlocking" Height="450" Width="500" Closed="MainWindowClosed">
+        Title="LCPServerNonBlocking" Height="450" Width="650" Closed="MainWindowClosed">
     <Grid Margin="10,10,10,10">
         <Button Name="StartButton" Margin="20" Content="Start" 
                 HorizontalAlignment="Right" VerticalAlignment="Bottom"   Click="StartButtonClick" Height="30" Width="100"/>
@@ -23,8 +23,8 @@
             </StackPanel>
         </StackPanel>
         <TextBox Margin="10" Name="queueResultTextBox" HorizontalAlignment="Right" VerticalAlignment="Top"
-                Height="250" Width="210" TextChanged="QueueResultTextBoxTextChanged" />
+                Height="250" Width="270" TextChanged="QueueResultTextBoxTextChanged" />
         <TextBox Margin="10" Name="dataResultTextBox" HorizontalAlignment="Left" VerticalAlignment="Top"
-                Height="250" Width="210" TextChanged="DataResultTextBoxTextChanged" />
+                Height="250" Width="270" TextChanged="DataResultTextBoxTextChanged" />
     </Grid>
 </Window>
