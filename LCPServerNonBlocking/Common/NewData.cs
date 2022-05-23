@@ -9,7 +9,7 @@ namespace LCPServerNonBlocking.Common
     public class NewData
     {
         public uint seq;
-        public byte[] data = new byte[68];
+        public byte[] data = new byte[1024];
 
         public NewData()
         {

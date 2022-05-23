@@ -1,5 +1,6 @@
 ﻿using LCPServerNonBlocking.Common;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -20,15 +21,14 @@ using System.Windows.Shapes;
 namespace LCPServerNonBlocking
 {
     /// <summary>
-    /// Interaction logic for LCPServerNonBlocking.xaml
+    /// Interaction logic for LCPServerNonBlockingConcurrentQueue.xaml
     /// </summary>
-    public partial class LCPServerNonBlock : Window
+    public partial class LCPServerNonBlockingConcurrentQueue : Window
     {
         private readonly AutoResetEvent autoresetevent;
         private readonly AutoResetEvent autoresetevent2;
-        private readonly Socket socket; // UdpClient 객체
-        private readonly Queue<NewData> queue;
-        private readonly object lockobject;
+        private readonly ConcurrentQueue<NewData> queue;
+        private readonly ConcurrentQueue<NewData> queueCopy;
 
         private const int threadSleep = 50;
         private const int socketTimeout = 5000;
@@ -42,16 +42,16 @@ namespace LCPServerNonBlocking
         private Thread th1;
         private Thread th2;
 
-        public LCPServerNonBlock()
+        public LCPServerNonBlockingConcurrentQueue()
         {
             this.autoresetevent = new AutoResetEvent(false);
             this.autoresetevent2 = new AutoResetEvent(false);
-            this.socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp); // Udp객체 생성
-            this.queue = new Queue<NewData>();
-            this.lockobject = new object();
+            
+            this.queue = new ConcurrentQueue<NewData>();
+            this.queueCopy = new ConcurrentQueue<NewData>();
 
             this.seqOverflowChanged = 0;
-            this.dataOverflowChanged = 0;
+            this.dataOverflowChanged = 0;;
             this.th1 = new Thread(new ThreadStart(ReceiveThread));
             this.th2 = new Thread(new ThreadStart(FileSaveThread));
 
@@ -63,90 +63,73 @@ namespace LCPServerNonBlocking
 
         private void ReceiveThread()
         {
-            autoresetevent.WaitOne(); // 신호대기
-
+            int recv;
             uint seq = 0;
             uint seq_overflow = 0;
-            //int seq = 4294967295;
-
-            int recv;
-            List<byte> list = new List<byte>();
-
             byte[] data = new byte[1024];
+            //uint seq = 4294967295; // for overflow test
 
-            Dispatcher.Invoke(() =>
-            {
-                this.ipAddress = IPAddress.Parse(ipTextBox.Text);
-                this.endpoint = new IPEndPoint(ipAddress, Convert.ToInt32(portTextBox.Text));
-            });
+            //List<byte> list = new List<byte>(); // for enqueue seq test
 
-            socket.Bind(endpoint);
-            // endpoint로 들어오는 connection들은 모두 바인딩함 / bind any incoming connection to that socket
-            socket.Blocking = false;
-            // socket non-blocking 
+            while (true) {
+                autoresetevent.WaitOne();
 
-            IPEndPoint sender = new IPEndPoint(IPAddress.Any, Dispatcher.Invoke(() => Convert.ToInt32(portTextBox.Text)));
-            // sender을 통해 한 커넥션을 대기하고, wait for an incoming connection
-            EndPoint tmpRemote = (EndPoint)sender;
-            // sender에 한개 들어오면, tmpRemote에 저장  as soon as it gets one, wire it up to this tmpRemote
-
-            while (true)
-            {
-                if(Dispatcher.Invoke(() => (string)(StartButton.Content) == "Start"))
+                if (Dispatcher.Invoke(() => (string)StartButton.Content == "Stop"))
                 {
-                    socket.Close();
-                    autoresetevent.WaitOne();
+                    Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp); // UdpClient 객체
 
-                    //if(Dispatcher.Invoke(() => (string)(StartButton.Content) == "Stop"))
-                    //{
-                    //    Socket re_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                    //    Dispatcher.Invoke(() =>
-                    //    {
-                    //        IPAddress re_ipaddress = IPAddress.Parse(ipTextBox.Text);
-                    //        IPEndPoint re_endpoint = new IPEndPoint(re_ipaddress, Convert.ToInt32(portTextBox.Text));
-                    //        endpoint = re_endpoint;
-                    //    });
-                    //    re_socket.Bind(endpoint);
-                    //    re_socket.Blocking = false;
-                    //    IPEndPoint re_sender = new IPEndPoint(IPAddress.Any, Dispatcher.Invoke(() => Convert.ToInt32(portTextBox.Text)));
-                    //    EndPoint re_tmpRemote = (EndPoint)re_sender;
-                    //}
-                }
-                try
-                {
-                    recv = socket.ReceiveFrom(data, ref tmpRemote);
-                }
-                catch (SocketException e)
-                {
-                    Thread.Sleep(threadSleep);
-                    continue; // Nonblocking 모드에서 읽을 데이터가 없으면 SocketException 리턴함
-                }
+                    this.ipAddress = IPAddress.Parse(Dispatcher.Invoke(() => ipTextBox.Text));
+                    this.endpoint = new IPEndPoint(ipAddress, Dispatcher.Invoke(() => Convert.ToInt32(portTextBox.Text)));
 
-                NewData newdata = new NewData(Convert.ToUInt32(seq), data);
+                    socket.Bind(endpoint);
+                    // endpoint로 들어오는 connection들은 모두 바인딩함 / bind any incoming connection to that socket
+                    socket.Blocking = false;
+                    // socket non-blocking 
 
-                lock (queue)
-                {
-                    queue.Enqueue(newdata);
-                }
-                //------------------------------------------------------------------------
-                // Enqueue 되고 있는 data의 int sequence 문제없는지 확인 하기 위한 함수
-                //------------------------------------------------------------------------
+                    IPEndPoint sender = new IPEndPoint(IPAddress.Any, Dispatcher.Invoke(() => Convert.ToInt32(portTextBox.Text)));
+                    // sender을 통해 한 커넥션을 대기하고, wait for an incoming connection
+                    EndPoint tmpRemote = (EndPoint)sender;
+                    // sender에 한개 들어오면, tmpRemote에 저장  as soon as it gets one, wire it up to this tmpRemote
+                    while (true)
+                    {
+                        try
+                        {
+                            recv = socket.ReceiveFrom(data, ref tmpRemote);
+                        }
+                        catch (SocketException e)
+                        {
+                            Thread.Sleep(threadSleep);  // Nonblocking 모드에서 읽을 데이터가 없으면 SocketException 리턴함
+                            continue;
+                        }
 
-                //if (newdata.data != null)
-                //{
-                //    for (int j = 0; j < 4; j++)
-                //        list.Add(newdata.data[j]);
-                //}
-                //Debug.Write(Convert.ToString(BitConverter.ToUInt32(list.ToArray(), 0)) + " ");
-                //list.Clear();
+                        NewData newdata = new NewData(Convert.ToUInt32(seq), data);
+                        queue.Enqueue(newdata);
 
-                seq++; // seq증가
-                if(seq == 0) // overflow 발생 후 seq가 0이 되면
-                {
-                    seq_overflow++; // overflow횟수 +1;
-                }
-                
-                Thread.Sleep(threadSleep);
+                        ////------------------------------------------------------------------------
+                        //// Enqueue 되고 있는 data의 int sequence 문제없는지 확인 하기 위한 함수
+                        ////------------------------------------------------------------------------
+                        //foreach (object queueData in queue)
+                        //{
+                        //    for (int j = 0; j < 4; j++)
+                        //        list.Add(newdata.data[j]);
+                        //}
+                        //Debug.Write(Convert.ToString(BitConverter.ToUInt32(list.ToArray(), 0)) + " ");
+                        //list.Clear();
+
+                        seq++; // seq증가
+                        if (seq == 0) // overflow 발생 후 seq가 0이 되면
+                        {
+                            seq_overflow++; // overflow횟수 +1;
+                        }
+
+                        if(Dispatcher.Invoke(() => (string)StartButton.Content == "Start"))
+                        {
+                            socket.Close();
+                            break;
+                        }
+                        Thread.Sleep(threadSleep);
+                    }
+                } 
             }
         }
 
@@ -176,19 +159,13 @@ namespace LCPServerNonBlocking
 
                     autoresetevent2.WaitOne();
                 }
-
-
-                lock (queue)
+               
+                if (!queue.IsEmpty == true)
                 {
-                    if (queue.Count() > 0)
-                    {
-                        newdata = queue.Dequeue();
-                        //for (int i = 0; i < queue.Count(); i++)
-                        //{
-                        //    newdata = queue.Dequeue();
-                        //}
-                    }
+                    NewData[] newdataArray = queue.ToArray();
                 }
+                queue.Clear();
+                
 
                 if (newdata.data != null)
                 {
@@ -209,14 +186,14 @@ namespace LCPServerNonBlocking
                     //currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0);
                     ////Debug.Write(Convert.ToString(currentValue) + " ");
                     //sequenceList.Clear();
-                    
-                    if(!(oldValue == 0 && currentValue == 0)) // 처음에 oldvalue와 currentvalue가 0인 상태
+
+                    if (!(oldValue == 0 && currentValue == 0)) // 처음에 oldvalue와 currentvalue가 0인 상태
                     {
-                        if(!(currentValue == oldValue + 1))
+                        if (!(currentValue == oldValue + 1))
                         {
                             packet_lost++;
                             Dispatcher.Invoke(() => dataResultTextBox.Text +=
-                                "OldValue : " + oldValue.ToString() + " Current Value : " + currentValue.ToString() 
+                                "OldValue : " + oldValue.ToString() + " Current Value : " + currentValue.ToString()
                                 + " Packet_Lost : " + packet_lost + "\n");
                         }
                     }
@@ -245,6 +222,9 @@ namespace LCPServerNonBlocking
                 Thread.Sleep(threadSleep);
             }
         }
+
+        
+
 
         private void StartButtonClick(object sender, RoutedEventArgs e)
         {
@@ -281,7 +261,3 @@ namespace LCPServerNonBlocking
         }
     }
 }
-
-// dequeue -> newdata -> list
-// old value, current value , packet lost
-// socket class close and open

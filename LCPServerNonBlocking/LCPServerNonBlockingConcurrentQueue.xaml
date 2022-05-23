@@ -1,0 +1,30 @@
+﻿<Window x:Class="LCPServerNonBlocking.LCPServerNonBlockingConcurrentQueue"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LCPServerNonBlocking"
+        mc:Ignorable="d"
+        Title="LCPServerNonBlockingConcurrentQueue" Height="450" Width="650" Closed="MainWindowClosed">
+    <Grid Margin="10,10,10,10">
+        <Button Name="StartButton" Margin="20" Content="Start" 
+                HorizontalAlignment="Right" VerticalAlignment="Bottom"   Click="StartButtonClick" Height="30" Width="100"/>
+
+        <StackPanel Margin ="10" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+            <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                        Orientation="Horizontal">
+                <Label Name="ipLabel" Content="IP" Height="30" Width="60"/>
+                <TextBox Name="ipTextBox" Height="30" Width="160"/>
+            </StackPanel>
+            <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                        Orientation="Horizontal">
+                <Label Name="portLabel" Content="Port" Height="30" Width="60"/>
+                <TextBox Name="portTextBox" Height="30" Width="160"/>
+            </StackPanel>
+        </StackPanel>
+        <TextBox Margin="10" Name="queueResultTextBox" HorizontalAlignment="Right" VerticalAlignment="Top"
+                Height="250" Width="270" TextChanged="QueueResultTextBoxTextChanged" />
+        <TextBox Margin="10" Name="dataResultTextBox" HorizontalAlignment="Left" VerticalAlignment="Top"
+                Height="250" Width="270" TextChanged="DataResultTextBoxTextChanged" />
+    </Grid>
+</Window>
