@@ -197,8 +197,8 @@ namespace LCPServerNonBlocking
                     //byte[] decompress_data;
 
                     oldValue = currentValue; // oldValue에 현재값 저장
-                    currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0); 
-                    Debug.Write(newdata)
+                    currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0);
+                    Debug.Write(Convert.ToString(currentValue) + " ");
                     sequenceList.Clear();
                     
                     if(!(oldValue == 0 && currentValue == 0)) // 처음에 oldvalue와 currentvalue가 0인 상태
