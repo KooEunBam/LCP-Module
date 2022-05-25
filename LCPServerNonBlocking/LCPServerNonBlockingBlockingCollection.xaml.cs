@@ -3,7 +3,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -22,16 +21,17 @@ using System.Windows.Shapes;
 namespace LCPServerNonBlocking
 {
     /// <summary>
-    /// Interaction logic for LCPServerNonBlockingConcurrentQueue.xaml
+    /// Interaction logic for LCPServerNonBlockingBlockingCollection.xaml
     /// </summary>
-    public partial class LCPServerNonBlockingConcurrentQueue : Window
+    public partial class LCPServerNonBlockingBlockingCollection : Window
     {
+
         private readonly AutoResetEvent autoresetevent;
         private readonly AutoResetEvent autoresetevent2;
-        private readonly ConcurrentQueue<NewData> queue;
+        private readonly BlockingCollection<NewData> queue;
         private readonly ConcurrentQueue<NewData> queueCopy;
 
-        private const int threadSleep = 10;
+        private const int threadSleep = 50;
         private const int socketTimeout = 5000;
         private const int display = 200;
 
@@ -42,17 +42,16 @@ namespace LCPServerNonBlocking
         private IPEndPoint endpoint; // Port번호
         private Thread th1;
         private Thread th2;
-
-        public LCPServerNonBlockingConcurrentQueue()
+        public LCPServerNonBlockingBlockingCollection()
         {
             this.autoresetevent = new AutoResetEvent(false);
             this.autoresetevent2 = new AutoResetEvent(false);
 
-            this.queue = new ConcurrentQueue<NewData>();
+            this.queue = new BlockingCollection<NewData>();
             this.queueCopy = new ConcurrentQueue<NewData>();
 
             this.seqOverflowChanged = 0;
-            this.dataOverflowChanged = 0;;
+            this.dataOverflowChanged = 0; ;
             this.th1 = new Thread(new ThreadStart(ReceiveThread));
             this.th2 = new Thread(new ThreadStart(FileSaveThread));
 
@@ -67,15 +66,16 @@ namespace LCPServerNonBlocking
             int recv;
             uint seq = 0;
             uint seq_overflow = 0;
-            byte[] datagram = new byte[500];
+            byte[] data = new byte[1024];
             //uint seq = 4294967295; // for overflow test
             //int dataCount = 0;
             List<byte> list = new List<byte>(); // for enqueue seq test
 
-            while (true) {
+            while (true)
+            {
                 autoresetevent.WaitOne();
 
-                if (Dispatcher.Invoke(() => (string)StartButton.Content == "Stop")) 
+                if (Dispatcher.Invoke(() => (string)StartButton.Content == "Stop"))
                 {
                     Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp); // UdpClient 객체
 
@@ -95,31 +95,33 @@ namespace LCPServerNonBlocking
                     {
                         try
                         {
-                            recv = socket.ReceiveFrom(datagram, ref tmpRemote);
+                            recv = socket.ReceiveFrom(data, ref tmpRemote);
                         }
-                        catch (SocketException)
+                        catch (SocketException e)
                         {
                             Thread.Sleep(threadSleep);  // Nonblocking 모드에서 읽을 데이터가 없으면 SocketException 리턴함
                             continue;
                         }
 
-                        ////------------------------------------------------------------------------
-                        //// To Test Datagram Sequence
-                        ////------------------------------------------------------------------------
-                        //for (int i = 0; i < 4; i++)
-                        //{
-                        //    list.Add(datagram[i]);
-                        //}
-                        //Debug.Write(Convert.ToString(BitConverter.ToUInt32(list.ToArray(), 0)) + " ");
-                        //list.Clear();
+                        NewData newdata = new NewData(seq, data);
 
-                        NewData newdata = new NewData(seq, datagram);
-                        queue.Enqueue(newdata);
+                        //------------------------------------------------------------------------
+                        // data의 seq를 체크하면 들어온 갯수 알 수 있음.
+                        //------------------------------------------------------------------------
+                        //for (int j = 0; j < 4; j++)
+                        //{
+                        //    list.Add(newdata.data[j]);
+                        //} 
+
+                        //Debug.Write(BitConverter.ToInt32(list.ToArray(), 0) + " ");
+
+                        queue.Add(newdata);
 
                         ////------------------------------------------------------------------------
                         //// Enqueue 갯수 확인
                         ////------------------------------------------------------------------------
                         //Debug.Write(Convert.ToString(queue.Count()) + " ");
+
 
                         seq++; // seq증가
                         if (seq == 0) // overflow 발생 후 seq가 0이 되면
@@ -127,14 +129,14 @@ namespace LCPServerNonBlocking
                             seq_overflow++; // overflow횟수 +1;
                         }
 
-                        if(Dispatcher.Invoke(() => (string)StartButton.Content == "Start"))
+                        if (Dispatcher.Invoke(() => (string)StartButton.Content == "Start"))
                         {
                             socket.Close();
                             break;
                         }
                         Thread.Sleep(threadSleep);
                     }
-                } 
+                }
             }
         }
 
@@ -143,17 +145,14 @@ namespace LCPServerNonBlocking
             uint packet_lost = 0;
             uint oldValue = 0;
             uint currentValue = 0;
-            int j = 0; // for index
-
-            byte[] decompress = new byte[1024];
 
             List<byte> sequenceList = new List<byte>(); // sequenceList 생성
-            List<byte> binaryList = new List<byte>();
+            List<NewData> newdataList = new List<NewData>();
 
             while (true)
             {
                 NewData newdata = new NewData(); // NewData객체 생성
-                
+
                 if ((string)Dispatcher.Invoke(() => StartButton.Content) == "Start") // 버튼이 Start상태라면 신호 대기
                 {
                     Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
@@ -167,48 +166,27 @@ namespace LCPServerNonBlocking
 
                     autoresetevent2.WaitOne();
                 }
+                newdata = queue.Take();
 
-                while (queue.TryDequeue(out newdata))
+                if (newdata != null)
                 {
-                    int k = 0;
-                    oldValue = currentValue;
-                    
-                    for (j = 0; j < 4; j++)
+                    for (int j = 0; j < 4; j++)
                         sequenceList.Add(newdata.data[j]);
+                    oldValue = currentValue; // oldValue에 현재값 저장
                     currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0);
+                    Debug.Write(Convert.ToString(currentValue) + " ");
                     sequenceList.Clear();
+                }
+                // list에 sequence (4byte)부터 넣어서 0번째 인덱스 부터 3번째 인덱스까지 추가함
 
-                    for (; j < newdata.data.Length; j++)
-                    {
-                        decompress[k] = newdata.data[j];
-                        k++;
-                    }
+                if (newdata != null)
+                {
+                    //byte[] decompress_data;
 
-                    byte[] decompressedData = Zip.Decompress(Convert.ToBase64String(decompress));
-                    Debug.Write(decompressedData.Length);
-                    Array.Clear(decompress, 0, decompress.Length);
-                    //Debug.Write(Zip.Decompress(Convert.ToBase64String(decompress)));
-
-                    for (int m = 0; m < decompressedData.Length; m++)
-                    {
-                        binaryList.Add(decompressedData[m]);
-                    }
-
-                    FileStream binFileStream = File.Open("Test.bin", FileMode.Create);
-                    BinaryWriter binWriter = new BinaryWriter(binFileStream);
-
-                    //foreach (var newdataData in binaryList)
-                    //{
-                    //    dataListStringBuilder.Append(newdataData);
-                    //}
-                    //dataResult = dataListStringBuilder.ToString();
-
-                    binWriter.Write(decompressedData);
-                    binaryList.Clear();
-                    binWriter.Close();
-
-                    var logger = new Logger();
-                    logger.Log("Save Completed");
+                    //oldValue = currentValue; // oldValue에 현재값 저장
+                    //currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0);
+                    ////Debug.Write(Convert.ToString(currentValue) + " ");
+                    //sequenceList.Clear();
 
                     if (!(oldValue == 0 && currentValue == 0)) // 처음에 oldvalue와 currentvalue가 0인 상태
                     {
@@ -223,18 +201,30 @@ namespace LCPServerNonBlocking
                     if (currentValue % display == 0)
                     {
                         Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
-                            "Queue_seq : " + newdata.seq + " Queue_overflow : " + seqOverflowChanged + "\n");
+                        "Queue_seq : " + newdata.seq + " Queue_overflow : " + seqOverflowChanged + "\n");
                         Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
                             "Data_seq : " + currentValue.ToString());
                         Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
                             " Data_Overflow : " + dataOverflowChanged + "\n");
-                    }   
+                    }
+
+                    //for (int i = 4; i < newdata.data.Length; i++) // 4부터 마지막 인덱스까지는 압축한 data
+                    //{
+                    //    sequenceList.Add(newdata.data[i]); // list에 압축한 데이타를 추가
+                    //}
+                    //decompress_data = Zip.Decompress(Convert.ToBase64String(sequenceList.ToArray())); // Decompress 
+                    //sequenceList.Clear(); // list clear
                 }
+
+                // DeCompress -> .zip save
+                //Zip.Decompress(Encoding.Default.GetString(newdata.data));
+
+
                 Thread.Sleep(threadSleep);
             }
         }
 
-        
+
 
 
         private void StartButtonClick(object sender, RoutedEventArgs e)
@@ -270,5 +260,6 @@ namespace LCPServerNonBlocking
             Application.Current.Shutdown(); // 어플리케이션을 종료
             Environment.Exit(0); // 어플리케이션의 모든 쓰레드를 멈추어 종료시킴
         }
+
     }
 }

@@ -12,15 +12,15 @@
         <StackPanel Margin="10" HorizontalAlignment="Left" VerticalAlignment="Top">
             <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
                 <Label Name ="ipLabel" Margin="10" Content="IP : " Height="30" Width="60"></Label>
-                <TextBox Name="ipTextBox" Margin="10" Height="30" Width="160"></TextBox>
+                <TextBox Name="ipTextBox" Margin="10" Height="30" Width="160" Text="127.0.0.1"></TextBox>
                 <Label Name ="portLabel" Margin="10" Content="Port" Height="30" Width="60"></Label>
-                <TextBox Name="portTextBox" Margin="10" Height="30" Width="160"></TextBox>
+                <TextBox Name="portTextBox" Margin="10" Height="30" Width="160" Text="10000"></TextBox>
             </StackPanel>
             <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
                 <Label Name="transactionPeriodLabel" Margin="10" Content="반복주기 : " Height="30" Width="60"></Label>
-                <TextBox Name="transactionPeriodTextBox" Margin="10" Height="30" Width="160"></TextBox>
+                <TextBox Name="transactionPeriodTextBox" Margin="10" Height="30" Width="160" Text="10"></TextBox>
                 <Label Name="transactionTimeLabel" Margin="10" Content="반복횟수 : " Height="30" Width="60"></Label>
-                <TextBox Name="transactionTimeTextBox" Margin="10" Height="30" Width="160"></TextBox>
+                <TextBox Name="transactionTimeTextBox" Margin="10" Height="30" Width="160" Text="0"></TextBox>
             </StackPanel>
             <StackPanel Margin="15" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
                 <TextBox Margin="10" Name="transactionQueueTextBox" TextChanged="transactionQueueTextBoxTextChanged"

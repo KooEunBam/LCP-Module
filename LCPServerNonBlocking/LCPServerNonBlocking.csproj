@@ -36,6 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -61,10 +62,14 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\Logger.cs" />
     <Compile Include="Common\NewData.cs" />
     <Compile Include="Common\Zip.cs" />
     <Compile Include="LCPServerNonBlocking.xaml.cs">
       <DependentUpon>LCPServerNonBlocking.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="LCPServerNonBlockingBlockingCollection.xaml.cs">
+      <DependentUpon>LCPServerNonBlockingBlockingCollection.xaml</DependentUpon>
     </Compile>
     <Compile Include="LCPServerNonBlockingConcurrentQueue.xaml.cs">
       <DependentUpon>LCPServerNonBlockingConcurrentQueue.xaml</DependentUpon>
@@ -96,6 +101,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="LCPServerNonBlocking.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="LCPServerNonBlockingBlockingCollection.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

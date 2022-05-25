@@ -42,7 +42,7 @@ namespace LCPClientNonBlocking
 
             byte[] data = new byte[64]; // 64byte data 
             byte[] byteDataSeq = new byte[4]; // int sequence to byte
-            byte[] datagram = new byte[1024]; // seq + compress_data
+            byte[] datagram; // seq + compress_data
             byte[] compressedData; // compressed 64byte data
             List<byte> datagramList = new List<byte>(); // list <= seq + compress_data (두 배열을 합하기 위해 list활용)
 
@@ -60,7 +60,7 @@ namespace LCPClientNonBlocking
                       // 2번만 해당하며, while문을 탈출 하더라도 click시 함수 인자값을 다시 넣으므로 실행에 문제없음
 
                     random.NextBytes(data); // data를 랜덤 바이트로 채움
-                    compressedData = Zip.Compress(Encoding.Default.GetString(data)); // data를 압축
+                    compressedData = Zip.Compress(Convert.ToBase64String(data)); // data를 압축
 
                     byteDataSeq = BitConverter.GetBytes(dataSequence); // dataSequence를 byte로 변환
                     datagramList.AddRange(byteDataSeq); // list에 data_seq, compress_data모두 넣고

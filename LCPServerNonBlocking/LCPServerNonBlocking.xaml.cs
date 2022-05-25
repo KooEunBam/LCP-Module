@@ -116,7 +116,7 @@ namespace LCPServerNonBlocking
                 {
                     recv = socket.ReceiveFrom(data, ref tmpRemote);
                 }
-                catch (SocketException e)
+                catch (SocketException)
                 {
                     Thread.Sleep(threadSleep);
                     continue; // Nonblocking 모드에서 읽을 데이터가 없으면 SocketException 리턴함
@@ -203,14 +203,14 @@ namespace LCPServerNonBlocking
 
                 if (newdata.data != null)
                 {
-                    //byte[] decompress_data;
+                    byte[] decompress_data;
 
-                    //oldValue = currentValue; // oldValue에 현재값 저장
-                    //currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0);
-                    ////Debug.Write(Convert.ToString(currentValue) + " ");
-                    //sequenceList.Clear();
-                    
-                    if(!(oldValue == 0 && currentValue == 0)) // 처음에 oldvalue와 currentvalue가 0인 상태
+                    oldValue = currentValue; // oldValue에 현재값 저장
+                    currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0);
+                    //Debug.Write(Convert.ToString(currentValue) + " ");
+                    sequenceList.Clear();
+
+                    if (!(oldValue == 0 && currentValue == 0)) // 처음에 oldvalue와 currentvalue가 0인 상태
                     {
                         if(!(currentValue == oldValue + 1))
                         {
