@@ -1,6 +1,7 @@
 ﻿using LCPClientNonBlocking.Common;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -110,9 +111,10 @@ namespace LCPClientNonBlocking
                     }
 
                     random.NextBytes(data); // data 임의의 바이트로 채움
-                    compressedData = Zip.Compress(Encoding.Default.GetString(data)); // data 압축
+                    compressedData = Zip.Compress(Convert.ToBase64String(data)); // data 압축
 
                     byteDataSeq = BitConverter.GetBytes(dataSequence);
+                    Debug.Write(byteDataSeq);
                     datagramList.AddRange(byteDataSeq); // list에 data_seq, compress_data모두 넣고
                     datagramList.AddRange(compressedData);
 

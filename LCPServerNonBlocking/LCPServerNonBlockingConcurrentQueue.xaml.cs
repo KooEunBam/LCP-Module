@@ -31,7 +31,7 @@ namespace LCPServerNonBlocking
         private readonly ConcurrentQueue<NewData> queue;
         private readonly ConcurrentQueue<NewData> queueCopy;
 
-        private const int threadSleep = 10;
+        private const int threadSleep = 7;
         private const int socketTimeout = 5000;
         private const int display = 200;
 
@@ -67,7 +67,7 @@ namespace LCPServerNonBlocking
             int recv;
             uint seq = 0;
             uint seq_overflow = 0;
-            byte[] datagram = new byte[500];
+            byte[] datagram = new byte[250];
             //uint seq = 4294967295; // for overflow test
             //int dataCount = 0;
             List<byte> list = new List<byte>(); // for enqueue seq test
@@ -143,9 +143,8 @@ namespace LCPServerNonBlocking
             uint packet_lost = 0;
             uint oldValue = 0;
             uint currentValue = 0;
+            uint filenumber = 1;
             int j = 0; // for index
-
-            byte[] decompress = new byte[1024];
 
             List<byte> sequenceList = new List<byte>(); // sequenceList 생성
             List<byte> binaryList = new List<byte>();
@@ -165,51 +164,32 @@ namespace LCPServerNonBlocking
                     Dispatcher.Invoke(() => dataResultTextBox.Text = dataResultTextBox.Text +
                         "\nPacket_Lost : " + packet_lost + "\n");
 
+                    filenumber = 1;
                     autoresetevent2.WaitOne();
-                }
+                }         
 
                 while (queue.TryDequeue(out newdata))
                 {
-                    int k = 0;
+                    //int k = 0;
                     oldValue = currentValue;
-                    
+                    byte[] decompress = new byte[newdata.data.Length - 4];
+
                     for (j = 0; j < 4; j++)
                         sequenceList.Add(newdata.data[j]);
                     currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0);
                     sequenceList.Clear();
-
+                          
                     for (; j < newdata.data.Length; j++)
                     {
-                        decompress[k] = newdata.data[j];
-                        k++;
+                        binaryList.Add(newdata.data[j]);
+                        //decompress[k] = newdata.data[j];
+                        //k++;
                     }
 
-                    byte[] decompressedData = Zip.Decompress(Convert.ToBase64String(decompress));
-                    Debug.Write(decompressedData.Length);
-                    Array.Clear(decompress, 0, decompress.Length);
+                    //Debug.Write(decompressedData.Length);
                     //Debug.Write(Zip.Decompress(Convert.ToBase64String(decompress)));
 
-                    for (int m = 0; m < decompressedData.Length; m++)
-                    {
-                        binaryList.Add(decompressedData[m]);
-                    }
-
-                    FileStream binFileStream = File.Open("Test.bin", FileMode.Create);
-                    BinaryWriter binWriter = new BinaryWriter(binFileStream);
-
-                    //foreach (var newdataData in binaryList)
-                    //{
-                    //    dataListStringBuilder.Append(newdataData);
-                    //}
-                    //dataResult = dataListStringBuilder.ToString();
-
-                    binWriter.Write(decompressedData);
-                    binaryList.Clear();
-                    binWriter.Close();
-
-                    var logger = new Logger();
-                    logger.Log("Save Completed");
-
+                    
                     if (!(oldValue == 0 && currentValue == 0)) // 처음에 oldvalue와 currentvalue가 0인 상태
                     {
                         if (!(currentValue == oldValue + 1))
@@ -228,14 +208,24 @@ namespace LCPServerNonBlocking
                             "Data_seq : " + currentValue.ToString());
                         Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
                             " Data_Overflow : " + dataOverflowChanged + "\n");
+
+                        FileStream binFileStream = File.Open($"Test{filenumber}.bin", FileMode.Create);
+                        using (BinaryWriter binWriter = new BinaryWriter(binFileStream))
+                        {
+                            binWriter.Write(Zip.Decompress(Convert.ToBase64String(binaryList.ToArray())));
+                            binaryList.Clear();
+                            binWriter.Close();
+                        }
+
+                        var logger = new Logger();
+                        logger.Log("Save Completed");
+
+                        filenumber++;
                     }   
                 }
                 Thread.Sleep(threadSleep);
             }
         }
-
-        
-
 
         private void StartButtonClick(object sender, RoutedEventArgs e)
         {
