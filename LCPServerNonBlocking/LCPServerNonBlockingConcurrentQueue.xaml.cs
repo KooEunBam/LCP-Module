@@ -32,6 +32,7 @@ namespace LCPServerNonBlocking
         private readonly ConcurrentQueue<NewData> queueCopy;
 
         private const int threadSleep = 7;
+        private const int threadSleepIdle = 30;
         private const int socketTimeout = 5000;
         private const int display = 200;
 
@@ -99,7 +100,7 @@ namespace LCPServerNonBlocking
                         }
                         catch (SocketException)
                         {
-                            Thread.Sleep(threadSleep);  // Nonblocking 모드에서 읽을 데이터가 없으면 SocketException 리턴함
+                            Thread.Sleep(threadSleepIdle);  // Nonblocking 모드에서 읽을 데이터가 없으면 SocketException 리턴함
                             continue;
                         }
 
@@ -130,7 +131,7 @@ namespace LCPServerNonBlocking
                         if(Dispatcher.Invoke(() => (string)StartButton.Content == "Start"))
                         {
                             socket.Close();
-                            break;
+                            break; // while문 탈출하면 다른 while문에서 다시 소켓을 생성하게됨.
                         }
                         Thread.Sleep(threadSleep);
                     }
@@ -147,7 +148,7 @@ namespace LCPServerNonBlocking
             int j = 0; // for index
 
             List<byte> sequenceList = new List<byte>(); // sequenceList 생성
-            List<byte> binaryList = new List<byte>();
+            List<byte> binaryList = new List<byte>(); // binaryList 생성
 
             while (true)
             {
@@ -168,20 +169,20 @@ namespace LCPServerNonBlocking
                     autoresetevent2.WaitOne();
                 }         
 
-                while (queue.TryDequeue(out newdata))
+                while (queue.TryDequeue(out newdata)) // Dequeue할때 queue가 null 이면 false, 값이 있다면 true
                 {
                     //int k = 0;
                     oldValue = currentValue;
-                    byte[] decompress = new byte[newdata.data.Length - 4];
+                    byte[] decompress = new byte[newdata.data.Length - 4]; // 압축해제 후 배열 크기를 알 수 없어서 크게 선언하면 0값이 들어가게됨
 
                     for (j = 0; j < 4; j++)
-                        sequenceList.Add(newdata.data[j]);
+                        sequenceList.Add(newdata.data[j]); // 0 ~ 3번 인덱스는 data의 sequence를 의미함
                     currentValue = BitConverter.ToUInt32(sequenceList.ToArray(), 0);
                     sequenceList.Clear();
                           
-                    for (; j < newdata.data.Length; j++)
+                    for (; j < newdata.data.Length; j++) // j는 4가 되어있는 상태이므로 인덱스가 4 이후에는 data값.
                     {
-                        binaryList.Add(newdata.data[j]);
+                        binaryList.Add(newdata.data[j]); // 압축된 데이타를 binaryList에 삽입
                         //decompress[k] = newdata.data[j];
                         //k++;
                     }
@@ -192,7 +193,7 @@ namespace LCPServerNonBlocking
                     
                     if (!(oldValue == 0 && currentValue == 0)) // 처음에 oldvalue와 currentvalue가 0인 상태
                     {
-                        if (!(currentValue == oldValue + 1))
+                        if (!(currentValue == oldValue + 1)) // currentValue와 oldValue의 차이가 1이 아니라면 packet lost
                         {
                             packet_lost++;
                             Dispatcher.Invoke(() => dataResultTextBox.Text +=
@@ -200,7 +201,7 @@ namespace LCPServerNonBlocking
                                 + " Packet_Lost : " + packet_lost + "\n");
                         }
                     }
-                    if (currentValue % display == 0)
+                    if (currentValue % display == 0) // display초기값 200으로 설정되어있음. display만큼 bin파일로 저장 및 log에 기록
                     {
                         Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
                             "Queue_seq : " + newdata.seq + " Queue_overflow : " + seqOverflowChanged + "\n");
@@ -209,21 +210,22 @@ namespace LCPServerNonBlocking
                         Dispatcher.Invoke(() => queueResultTextBox.Text = queueResultTextBox.Text +
                             " Data_Overflow : " + dataOverflowChanged + "\n");
 
-                        FileStream binFileStream = File.Open($"Test{filenumber}.bin", FileMode.Create);
-                        using (BinaryWriter binWriter = new BinaryWriter(binFileStream))
+                        FileStream binFileStream = File.Open($"Test{filenumber}.bin", FileMode.Create); // bin파일 생성 후 파일 오픈상태
+                        using (BinaryWriter binWriter = new BinaryWriter(binFileStream)) // binary로 작성
                         {
-                            binWriter.Write(Zip.Decompress(Convert.ToBase64String(binaryList.ToArray())));
-                            binaryList.Clear();
-                            binWriter.Close();
+                            binWriter.Write(Zip.Decompress(Convert.ToBase64String(binaryList.ToArray()))); // binaryList를 배열로 변환뒤 decompression 후 파일에 작성
+                            binaryList.Clear(); // List 초기화 후
+                            binWriter.Close(); // Close.
                         }
 
-                        var logger = new Logger();
-                        logger.Log("Save Completed");
+                        var logger = new Logger(); // Logger클래스 생성자 
+                        logger.Log("Save Completed"); // 로그에 년월일 시간 Save Completed 라고 저장.
 
                         filenumber++;
-                    }   
+                    }
+                    Thread.Sleep(threadSleep);
                 }
-                Thread.Sleep(threadSleep);
+                 // TryDequeue(out T)가 false반환시 Idle상태.
             }
         }
 
