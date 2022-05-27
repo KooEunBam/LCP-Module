@@ -29,11 +29,9 @@ namespace LCPServerNonBlocking
         private readonly AutoResetEvent autoresetevent;
         private readonly AutoResetEvent autoresetevent2;
         private readonly ConcurrentQueue<NewData> queue;
-        private readonly ConcurrentQueue<NewData> queueCopy;
 
         private const int threadSleep = 7;
         private const int threadSleepIdle = 30;
-        private const int socketTimeout = 5000;
         private const int display = 200;
 
         private uint seqOverflowChanged;
@@ -50,7 +48,6 @@ namespace LCPServerNonBlocking
             this.autoresetevent2 = new AutoResetEvent(false);
 
             this.queue = new ConcurrentQueue<NewData>();
-            this.queueCopy = new ConcurrentQueue<NewData>();
 
             this.seqOverflowChanged = 0;
             this.dataOverflowChanged = 0;;
